@@ -1,0 +1,48 @@
+{
+  "name": "smart-ico",
+  "version": "0.0.1",
+  "description": "This is contract of Pixel token.",
+  "main": "truffle.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "ganache-run": "docker run --name ganache -d -p 8545:8545 trufflesuite/ganache-cli -a 50 -e 1000000",
+    "ganache-stop": "docker rm -f ganache",
+    "test": "npm run ganache-run; truffle test; npm run ganache-stop",
+    "test:testnet": "truffle test --network testnet_token",
+    "migrate": "truffle migrate --network development --reset",
+    "migrate:testnet": "truffle migrate --network testnet_token --reset",
+    "migrate:mainnet": "truffle migrate --network mainnet_token --reset",
+    "console": "npm run ganache-run; npm run migrate; truffle console; npm run ganache-stop"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/piction-network/smart-ico.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "homepage": "https://github.com/piction-network/smart-ico#readme",
+  "dependencies": {
+    "openzeppelin-solidity": "git+https://github.com/OpenZeppelin/openzeppelin-solidity.git"
+  },
+  "devDependencies": {
+    "prompt-radio": "^1.2.1",
+    "replace-in-file": "^3.4.0",
+    "array.chunk": "^1.1.0",
+    "await-each": "^1.1.0",
+    "bignumber.js": "^7.2.1",
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "chai-bignumber": "^2.0.2",
+    "colors": "^1.2.4",
+    "csv-parse": "^2.4.0",
+    "csv-parser": "^1.12.1",
+    "dotenv-flow": "0.1.0-beta.1",
+    "enquirer": "^1.0.3",
+    "prompt-confirm": "^2.0.4",
+    "truffle-flattener": "^1.2.5",
+    "truffle-hdwallet-provider-privkey": "0.2.0",
+    "web3": "^1.0.0-beta.34"
+  }
+}
