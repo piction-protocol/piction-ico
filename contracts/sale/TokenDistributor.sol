@@ -41,16 +41,6 @@ contract TokenDistributor is Ownable {
         bool refund
     );
 
-    event ReceiptList(
-        bytes32 id,
-        address buyer,
-        address product,
-        uint256 amount,
-        uint256 criterionTime,
-        bool release,
-        bool refund
-    );
-
     event BuyerAddressTransfer(bytes32 _id, address _from, address _to);
 
     event WithdrawToken(address to, uint256 amount);
@@ -81,7 +71,7 @@ contract TokenDistributor is Ownable {
         require(_id != 0);
 
         uint index = indexId[_id];
-        if (!purchasedList[index].release && !purchasedList[index].refund) {
+        if (isLive()) {
             purchasedList[index].amount = purchasedList[index].amount.add(_amount);
 
             emit Receipt(
@@ -105,19 +95,6 @@ contract TokenDistributor is Ownable {
             return 0;
         } else {
             return purchasedList[index].amount;
-        }
-    }
-
-    function getPurchasedList() external onlyOwner {
-        for(uint index=1; index < purchasedList.length; index++) {
-            emit ReceiptList(
-                purchasedList[index].id,
-                purchasedList[index].buyer,
-                purchasedList[index].product,
-                purchasedList[index].amount,
-                purchasedList[index].criterionTime,
-                purchasedList[index].release,
-                purchasedList[index].refund);
         }
     }
 
@@ -164,8 +141,8 @@ contract TokenDistributor is Ownable {
 
     function release(bytes32 _id) external onlyOwner {
         uint index = indexId[_id];
-        if (!purchasedList[index].release && !purchasedList[index].refund) {
 
+        if (isLive()) {
             Product product = Product(purchasedList[index].product);
             require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup()));
             purchasedList[index].release = true;
@@ -186,7 +163,8 @@ contract TokenDistributor is Ownable {
 
     function refund(bytes32 _id) external onlyOwner returns (bool, uint256) {
         uint index = indexId[_id];
-        if (!purchasedList[index].release && !purchasedList[index].refund) {
+
+        if (isLive()) {
             Product product = Product(purchasedList[index].product);
             require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup()));
             purchasedList[index].refund = true;
@@ -224,5 +202,13 @@ contract TokenDistributor is Ownable {
     function withdrawToken(address _Owner) external onlyOwner {
         token.safeTransfer(_Owner, token.balanceOf(address(this)));
         emit WithdrawToken(_Owner, token.balanceOf(address(this)));
+    }
+
+    function isLive() returns(bool){
+        if (!purchasedList[index].release && !purchasedList[index].refund) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
