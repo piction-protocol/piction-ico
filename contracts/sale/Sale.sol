@@ -143,7 +143,7 @@ contract Sale is Stateable {
         return (possibleAmount, _amount.sub(possibleAmount), possibleAmount.add(product.weiRaised));
     }
 
-    function refund(address _buyerAddress) private validAddress(_buyerAddress) {
+    function refund(address _buyerAddress) external onlyOwner validAddress(_buyerAddress) {
         bool isRefund;
         uint256 refundAmount;
         (isRefund, refundAmount) = tokenDistributor.refund(_buyerAddress, address(product));
