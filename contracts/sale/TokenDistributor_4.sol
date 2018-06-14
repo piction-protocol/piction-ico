@@ -96,7 +96,7 @@ contract TokenDistributor_4 is Ownable {
         }
     }
 
-    function releaseMany(address _product)
+    function releaseProduct(address _product)
         external
         onlyOwner
         validAddress(_product)
@@ -124,28 +124,27 @@ contract TokenDistributor_4 is Ownable {
         }
     }
 
-    function release(address _product) external validAddress(_product) {
+    function release(bytes32 _id) external onlyOwner {
+
         //TODO require
         //release check
         //refund check
         //blockTime check
 
-        for(uint index=0; index < purchasedList.length; index++) {
-            if (purchasedList[index].buyer == msg.sender
-                && purchasedList[index].product == _product) {
-                purchasedList[index].release = true;
+        uint index = indexId[_id];
+        if (!purchasedList[index].release || !purchasedList[index].refund) {
+            purchasedList[index].release = true;
 
-                //TODO token safeTransfer
+            //TODO token safeTransfer
 
-                emit Receipt(
-                    purchasedList[index].id,
-                    purchasedList[index].buyer,
-                    purchasedList[index].product,
-                    purchasedList[index].amount,
-                    purchasedList[index].criterionTime,
-                    purchasedList[index].release,
-                    purchasedList[index].refund);
-            }
+            emit Receipt(
+                purchasedList[index].id,
+                purchasedList[index].buyer,
+                purchasedList[index].product,
+                purchasedList[index].amount,
+                purchasedList[index].criterionTime,
+                purchasedList[index].release,
+                purchasedList[index].refund);
         }
     }
 
@@ -162,7 +161,7 @@ contract TokenDistributor_4 is Ownable {
         //TODO token safeTransfer
     }
 
-    function refund(bytes32 _id) external onlyOwner returns (bool) {
+    function refund(bytes32 _id) external onlyOwner returns (bool, uint256) {
         //TODO require
         //release check
         //refund check
@@ -181,9 +180,9 @@ contract TokenDistributor_4 is Ownable {
                 purchasedList[index].release,
                 purchasedList[index].refund);
 
-            return true;
+            return (true, purchasedList[index].amount);
         } else {
-            return false;
+            return (false, 0);
         }
         //TODO token safeTransfer
     }
