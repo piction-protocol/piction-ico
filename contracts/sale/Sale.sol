@@ -1,7 +1,5 @@
 pragma solidity ^0.4.23;
 
-import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/ownership/Whitelist.sol";
 import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
@@ -13,7 +11,6 @@ import "../utils/PixelMath.sol";
 
 contract Sale is Stateable {
     using SafeMath for uint256;
-    using SafeERC20 for ERC20;
 
     address public wallet;
     Whitelist public whiteList;
