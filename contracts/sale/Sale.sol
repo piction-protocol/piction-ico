@@ -25,16 +25,10 @@ contract Sale is Stateable {
         _;
     }
 
-    modifier limit(address[] _addrs) {
-        require(_addrs.length <= 30);
-        _;
-    }
-
     modifier changeProduct() {
         require(getState() == State.Preparing || getState() == State.finished);
         _;
     }
-
 
     constructor (
         address _wallet,
@@ -151,9 +145,24 @@ contract Sale is Stateable {
         }
     }
 
-    //TODO buyerAddressTransfer 코드 작성
+    function buyerAddressTransfer(address _from, address _to) external onlyOwner validAddress(_from) validAddress(_to) {
+        require(whiteList.whitelist(_from));
+        require(whiteList.whitelist(_to));
+        require(tokenDistributor.getAmount(buyers[_from]) > 0);
+        require(tokenDistributor.getAmount(buyers[_to]) == 0);
+
+        bool isChanged = tokenDistributor.buyerAddressTransfer(buyers[_from], _from, _to);
+
+        require(isChanged);
+
+        bytes32 fromId = buyers[_from];
+        buyers[_to] = fromId;
+        delete buyers[_from];
+
+        emit BuyerAddressTransfer(_from, _to, buyers[_to]);
+    }
 
     event Purchase(address indexed _buyer, uint256 _purchased, uint256 _refund, uint256 _tokens);
     event ChangeExternalAddress(address _addr, string _name);
-    event BuyerAddressTransfer(address indexed _from, address indexed _to);
+    event BuyerAddressTransfer(address indexed _from, address indexed _to, bytes32 _id);
 }
