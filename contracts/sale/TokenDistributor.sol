@@ -83,6 +83,15 @@ contract TokenDistributor is Ownable {
         uint index = indexId[_id];
         if (!purchasedList[index].release || !purchasedList[index].refund) {
             purchasedList[index].amount = purchasedList[index].amount.add(_amount);
+
+            emit Receipt(
+                purchasedList[index].id,
+                purchasedList[index].buyer,
+                purchasedList[index].product,
+                _amount,
+                0,
+                false,
+                false);
         }
     }
 
