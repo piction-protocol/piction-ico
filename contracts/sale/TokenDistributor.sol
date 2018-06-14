@@ -71,7 +71,7 @@ contract TokenDistributor is Ownable {
         require(_id != 0);
 
         uint index = indexId[_id];
-        if (isLive()) {
+        if (isLive(index)) {
             purchasedList[index].amount = purchasedList[index].amount.add(_amount);
 
             emit Receipt(
@@ -142,7 +142,7 @@ contract TokenDistributor is Ownable {
     function release(bytes32 _id) external onlyOwner {
         uint index = indexId[_id];
 
-        if (isLive()) {
+        if (isLive(index)) {
             Product product = Product(purchasedList[index].product);
             require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup()));
             purchasedList[index].release = true;
@@ -164,7 +164,7 @@ contract TokenDistributor is Ownable {
     function refund(bytes32 _id) external onlyOwner returns (bool, uint256) {
         uint index = indexId[_id];
 
-        if (isLive()) {
+        if (isLive(index)) {
             Product product = Product(purchasedList[index].product);
             require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup()));
             purchasedList[index].refund = true;
@@ -204,8 +204,8 @@ contract TokenDistributor is Ownable {
         emit WithdrawToken(_Owner, token.balanceOf(address(this)));
     }
 
-    function isLive() returns(bool){
-        if (!purchasedList[index].release && !purchasedList[index].refund) {
+    function isLive(uint256 _index) private view returns(bool){
+        if (!purchasedList[_index].release && !purchasedList[_index].refund) {
             return true;
         } else {
             return false;
