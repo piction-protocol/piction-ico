@@ -3,7 +3,6 @@ pragma solidity ^0.4.23;
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "../utils/Ownable.sol";
 import "./Product.sol";
 
 contract TokenDistributor is Ownable {
@@ -56,7 +55,7 @@ contract TokenDistributor is Ownable {
 
     event WithdrawToken(address to, uint256 amount);
 
-    constructor(address _token) {
+    constructor(address _token) public {
         token = ERC20(_token);
         nonce = 0;
 
@@ -87,7 +86,7 @@ contract TokenDistributor is Ownable {
         }
     }
 
-    function getAmount(bytes32 _id) external returns(uint256) {
+    function getAmount(bytes32 _id) external view returns(uint256) {
         if (_id == 0) {
             return 0;
         }
@@ -136,7 +135,7 @@ contract TokenDistributor is Ownable {
                 && !purchasedList[index].refund)
             {
                 Product product = Product(purchasedList[index].product);
-                require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup));
+                require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup()));
                 purchasedList[index].release = true;
 
                 require(token.balanceOf(address(this)) >= purchasedList[index].amount);
@@ -159,7 +158,7 @@ contract TokenDistributor is Ownable {
         if (!purchasedList[index].release && !purchasedList[index].refund) {
 
             Product product = Product(purchasedList[index].product);
-            require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup));
+            require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup()));
             purchasedList[index].release = true;
 
             require(token.balanceOf(address(this)) >= purchasedList[index].amount);
@@ -180,7 +179,7 @@ contract TokenDistributor is Ownable {
         uint index = indexId[_id];
         if (!purchasedList[index].release && !purchasedList[index].refund) {
             Product product = Product(purchasedList[index].product);
-            require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup));
+            require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup()));
             purchasedList[index].refund = true;
 
             emit Receipt(
