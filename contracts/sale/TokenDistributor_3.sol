@@ -5,7 +5,7 @@ import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../utils/Ownable.sol";
 
-contract TokenDistributor is Ownable {
+contract TokenDistributor_3 is Ownable {
 
     using SafeMath for uint256;
     using SafeERC20 for ERC20;
