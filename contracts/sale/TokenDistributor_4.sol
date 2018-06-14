@@ -62,24 +62,18 @@ contract TokenDistributor_4 is Ownable {
         emit Receipt(id, _buyer, _product, _amount, 0, false, false);
     }
 
-    function getAmount(address _buyer, address _product)
-        external
-        validAddress(_buyer)
-        validAddress(_product)
-        returns(uint256)
-    {
-        //TODO require
-
-        for(uint index=0; index < purchasedList.length; index++) {
-            if (purchasedList[index].buyer == _buyer
-                && purchasedList[index].product == _product) {
-                return purchasedList[index].amount;
-            }
+    function addPurchased(bytes32 _id, uint256 _amount) external onlyOwner {
+        uint index = indexId[_id];
+        if (!purchasedList[index].release || !purchasedList[index].refund) {
+            purchasedList[index].amount = purchasedList[index].amount.add(_amount);
         }
-        return 0;
     }
 
     function getAmount(bytes32 _id) external returns(uint256) {
+        if (_id == 0) {
+            return 0;
+        }
+
         uint index = indexId[_id];
         if (purchasedList[index].release || purchasedList[index].refund) {
             return 0;
@@ -168,35 +162,7 @@ contract TokenDistributor_4 is Ownable {
         //TODO token safeTransfer
     }
 
-    function refund(address _buyer, address _product)
-        external
-        onlyOwner
-        validAddress(_buyer)
-        validAddress(_product) {
-        //TODO require
-        //release check
-        //refund check
-        //blockTime check
-
-        for(uint index=0; index < purchasedList.length; index++) {
-            if (purchasedList[index].buyer == _buyer
-                && purchasedList[index].product == _product) {
-
-                purchasedList[index].refund = true;
-
-                emit Receipt(
-                    purchasedList[index].id,
-                    purchasedList[index].buyer,
-                    purchasedList[index].product,
-                    purchasedList[index].amount,
-                    purchasedList[index].criterionTime,
-                    purchasedList[index].release,
-                    purchasedList[index].refund);
-            }
-        }
-    }
-
-    function refund(bytes32 _id) external onlyOwner {
+    function refund(bytes32 _id) external onlyOwner returns (bool) {
         //TODO require
         //release check
         //refund check
@@ -214,6 +180,10 @@ contract TokenDistributor_4 is Ownable {
                 purchasedList[index].criterionTime,
                 purchasedList[index].release,
                 purchasedList[index].refund);
+
+            return true;
+        } else {
+            return false;
         }
         //TODO token safeTransfer
     }
