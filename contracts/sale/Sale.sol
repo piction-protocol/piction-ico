@@ -9,6 +9,7 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./Product.sol"
 import "./TokenDistributor.sol"
 import "../utils/Stateable.sol";
+import "../utils/PixelMath.sol";
 
 contract Sale is Stateable {
     using SafeMath for uint256;
@@ -19,84 +20,141 @@ contract Sale is Stateable {
     Product public product;
     TokenDistributor public tokenDistributor;
 
+    mapping (address => bytes32) buyers;
+
     modifier validAddress(address _account) {
         require(_account != address(0));
         require(_account != address(this));
         _;
     }
 
-    modifier completed() {
-        require(getState() == State.Completed);
+    modifier limit(address[] _addrs) {
+        require(_addrs.length <= 30);
         _;
     }
 
-    modifier finalized() {
-        require(getState() == State.Finalized);
+    modifier changeProduct() {
+        require(getState() == State.Preparing || getState() == State.finished);
         _;
     }
 
-    constructor () public {
 
+    constructor (
+        address _wallet,
+        address _whiteList,
+        address _product,
+        address _tokenDistributor
+    ) public {
+        require(_wallet != address(0));
+        require(_whiteList != address(0));
+        require(_product != address(0));
+        require(_tokenDistributor != address(0));
+
+        wallet = _wallet;
+        whiteList = Whitelist(_whiteList);
+        product = Product(_product);
+        tokenDistributor = TokenDistributor(_tokenDistributor);
+
+        setState(State.Preparing);
+    }
+
+    function registerProduct(address _product) external onlyOwner changeProduct validAddress(_product) {
+        delete buyers;
+        setState(State.Preparing);
+        product = Product(_product);
+
+        emit ChangeExternalAddress(_product, "Product");
     }
 
     function setTokenDistributor(address _tokenDistributor) external onlyOwner validAddress(_tokenDistributor) {
-
-    }
-
-    function setProduct(address _product) external onlyOwner finalized validAddress(_product) {
-
+        tokenDistributor = TokenDistributor(_tokenDistributor);
+        emit ChangeExternalAddress(_product, "TokenDistributor");
     }
 
     function setWhitelist(address _whitelist) external onlyOwner validAddress(_whitelist) {
-
+        whiteList = Whitelist(_whitelist);
+        emit ChangeExternalAddress(_whitelist, "Whitelist");
     }
 
     function setWallet(address _wallet) external onlyOwner validAddress(_wallet) {
-
+        wallet = _wallet;
+        emit ChangeExternalAddress(_wallet, "Wallet");
     }
 
     function pause() external onlyOwner {
-
+        setState(State.Pausing);
     }
 
     function start() external onlyOwner {
-
+        setState(State.Starting);
     }
 
-    function complete() external onlyOwner {
-
-    }
-
-    function finalize() external onlyOwner {
-
+    function finished() external onlyOwner {
+        setState(State.finished);
     }
 
     function () external payable {
+        address buyer = msg.sender;
+        uint256 amount = msg.value;
 
+        require(getState() == State.Starting);
+        require(whiteList.whitelist(buyer));
+        require(buyer != address(0));
+        require(product.weiRaised < product.maxcap);
+
+        address productAddress = address(product);
+        uint256 tokenAmount = tokenDistributor.getAmount(buyers[buyer]);
+        uint256 buyerAmount = (tokenAmount > 0) ? tokenAmount.div(product.rate) : 0 ;
+
+        require(buyerAmount < product.exceed);
+        require(buyerAmount.add(amount) >= product.minimum);
+
+        uint256 purchase;
+        uint256 refund;
+        uint256 totalAmount;
+        (purchase, refund, totalAmount) = getPurchaseDetail(buyer, amount, buyerAmount);
+
+        product.addWeiRaised(totalAmount);
+
+        if(buyerAmount > 0) {
+            tokenDistributor.addPurchased(buyers[buyer], totalAmount.mul(product.rate));
+        } else {
+            tokenDistributor.addPurchased(buyer, productAddress, totalAmount.mul(product.rate));
+        }
+
+        wallet.transfer(purchase);
+
+        if(refund > 0) {
+            buyer.transfer(refund);
+        }
+
+        if(totalAmount >= product.maxcap) {
+            setState(state.finished);
+        }
+
+        emit Purchase(buyer, purchase, refund, purchase.mul(rate));
     }
 
-    function collect() private {
+    function getPurchaseDetail(address _buyer, uint256 _amount, uint256 _buyerAmount) private view returns (uint256, uint256, uint256) {
+        uint256 d1 = product.maxcap.sub(product.weiRaised);
+        uint256 d2 = product.exceed.sub(_buyerAmount);
+        uint256 possibleAmount = min(min(d1, d2), _amount);
 
-    }
-
-    function getPurchaseAmount(address _buyer, uint256 _amount) private view returns (uint256, uint256) {
-
-    }
-
-    function min(uint256 val1, uint256 val2) private pure returns (uint256){
-
+        return (possibleAmount, _amount.sub(possibleAmount), possibleAmount.add(product.weiRaised));
     }
 
     function refund(address _buyerAddress) private validAddress(_buyerAddress) {
+        bool isRefund;
+        uint256 refundAmount;
+        (isRefund, refundAmount) = tokenDistributor.refund(_buyerAddress, address(product));
 
+        if(isRefund) {
+            product.subWeiRaised(refundAmount);
+            delete buyers[_buyerAddress];
+        }
     }
 
     event Purchase(address indexed _buyer, uint256 _purchased, uint256 _refund, uint256 _tokens);
-
     event ChangeExternalAddress(address _addr, string _name);
     event BuyerAddressTransfer(address indexed _from, address indexed _to);
-
-    event Refund(address indexed _to, uint256 _amount);
-    event Fail(address indexed _addr, string _reason);
-
 }

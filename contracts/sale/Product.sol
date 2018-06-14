@@ -1,5 +1,6 @@
 pragma solidity ^0.4.23;
 
+import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "contracts/utils/Ownable.sol";
 
 /**
@@ -7,6 +8,7 @@ import "contracts/utils/Ownable.sol";
  * @dev Simpler version of Product interface
  */
 contract Product is Ownable {
+    using SafeMath for uint256;
 
     string public name;
     uint256 public maxcap;
@@ -34,9 +36,15 @@ contract Product is Ownable {
         lockup = _lockup;
     }
 
-    function setWeiRaised(uint256 _weiRaised) public onlyOwner {
+    function addWeiRaised(uint256 _weiRaised) public onlyOwner {
         require(weiRaised <= _weiRaised);
 
         weiRaised = _weiRaised;
+    }
+
+    function subWeiRaised(uint256 _weiRaised) public onlyOwner {
+        require(weiRaised >= _weiRaised);
+
+        weiRaised = weiRaised.sub(_weiRaised);
     }
 }
