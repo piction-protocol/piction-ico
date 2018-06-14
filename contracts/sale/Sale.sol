@@ -114,9 +114,9 @@ contract Sale is Stateable {
         product.addWeiRaised(totalAmount);
 
         if(buyerAmount > 0) {
-            tokenDistributor.addPurchased(buyers[buyer], totalAmount.mul(product.rate));
+            tokenDistributor.addPurchased(buyers[buyer], purchase.mul(product.rate));
         } else {
-            tokenDistributor.addPurchased(buyer, productAddress, totalAmount.mul(product.rate));
+            tokenDistributor.addPurchased(buyer, productAddress, purchase.mul(product.rate));
         }
 
         wallet.transfer(purchase);
@@ -143,13 +143,15 @@ contract Sale is Stateable {
     function refund(address _buyerAddress) external onlyOwner validAddress(_buyerAddress) {
         bool isRefund;
         uint256 refundAmount;
-        (isRefund, refundAmount) = tokenDistributor.refund(_buyerAddress, address(product));
+        (isRefund, refundAmount) = tokenDistributor.refund(buyers[_buyerAddress]);
 
         if(isRefund) {
             product.subWeiRaised(refundAmount);
             delete buyers[_buyerAddress];
         }
     }
+
+    //TODO buyerAddressTransfer 코드 작성
 
     event Purchase(address indexed _buyer, uint256 _purchased, uint256 _refund, uint256 _tokens);
     event ChangeExternalAddress(address _addr, string _name);
