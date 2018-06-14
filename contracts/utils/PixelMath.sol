@@ -10,6 +10,6 @@ contract PixelMath {
     }
 
     function max(uint256 val1, uint256 val2) public pure returns (uint256){
-        return (val1 > val2) ? a : b;
+        return (val1 > val2) ? val1 : val2;
     }
 }
