@@ -4,6 +4,7 @@ import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "../utils/Ownable.sol";
+import "./Product.sol";
 
 contract TokenDistributor_4 is Ownable {
 
@@ -51,9 +52,16 @@ contract TokenDistributor_4 is Ownable {
         bool refund
     );
 
+    event BuyerAddressTransfer(bytes32 _id, address _from, address _to);
+
+    event WithdrawToken(address to, uint256 amount);
+
     constructor(address _token) {
         token = ERC20(_token);
         nonce = 0;
+
+        //for error check
+        purchasedList.push(Purchased(0, 0, 0, 0, 0, true, true));
     }
 
     function addPurchased(address _buyer, address _product, uint256 _amount)
@@ -62,17 +70,17 @@ contract TokenDistributor_4 is Ownable {
         validAddress(_buyer)
         validAddress(_product)
     {
-        //TODO require
-
         nonce = nonce.add(1);
-        bytes32 id = keccak256(msg.sender, block.timestamp, nonce);
+        bytes32 id = keccak256(_buyer, block.timestamp, nonce);
         purchasedList.push(Purchased(id, _buyer, _product, _amount, 0, false, false));
-        indexId[id] = purchasedList.length.sub(1);
+        indexId[id] = purchasedList.length;
 
         emit Receipt(id, _buyer, _product, _amount, 0, false, false);
     }
 
     function addPurchased(bytes32 _id, uint256 _amount) external onlyOwner {
+        require(_id != 0);
+
         uint index = indexId[_id];
         if (!purchasedList[index].release || !purchasedList[index].refund) {
             purchasedList[index].amount = purchasedList[index].amount.add(_amount);
@@ -93,7 +101,7 @@ contract TokenDistributor_4 is Ownable {
     }
 
     function getPurchasedList() external onlyOwner {
-        for(uint index=0; index < purchasedList.length; index++) {
+        for(uint index=1; index < purchasedList.length; index++) {
             emit ReceiptList(
                 purchasedList[index].id,
                 purchasedList[index].buyer,
@@ -110,9 +118,7 @@ contract TokenDistributor_4 is Ownable {
         onlyOwner
         validAddress(_product)
     {
-        //TODO require
-
-        for(uint index=0; index < purchasedList.length; index++) {
+        for(uint index=1; index < purchasedList.length; index++) {
             if (purchasedList[index].product == _product) {
                 purchasedList[index].criterionTime = _criterionTime;
             }
@@ -124,16 +130,17 @@ contract TokenDistributor_4 is Ownable {
         onlyOwner
         validAddress(_product)
     {
-        //TODO require
-        //release check
-        //refund check
-        //blockTime check
-
-        for(uint index=0; index < purchasedList.length; index++) {
-            if (purchasedList[index].product == _product) {
+        for(uint index=1; index < purchasedList.length; index++) {
+            if (purchasedList[index].product == _product
+                && !purchasedList[index].release
+                && !purchasedList[index].refund)
+            {
+                Product product = Product(purchasedList[index].product);
+                require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup));
                 purchasedList[index].release = true;
 
-                //TODO token safeTransfer
+                require(token.balanceOf(address(this)) >= purchasedList[index].amount);
+                token.safeTransfer(purchasedList[index].buyer, purchasedList[index].amount);
 
                 emit Receipt(
                     purchasedList[index].id,
@@ -148,17 +155,15 @@ contract TokenDistributor_4 is Ownable {
     }
 
     function release(bytes32 _id) external onlyOwner {
-
-        //TODO require
-        //release check
-        //refund check
-        //blockTime check
-
         uint index = indexId[_id];
-        if (!purchasedList[index].release || !purchasedList[index].refund) {
+        if (!purchasedList[index].release && !purchasedList[index].refund) {
+
+            Product product = Product(purchasedList[index].product);
+            require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup));
             purchasedList[index].release = true;
 
-            //TODO token safeTransfer
+            require(token.balanceOf(address(this)) >= purchasedList[index].amount);
+            token.safeTransfer(purchasedList[index].buyer, purchasedList[index].amount);
 
             emit Receipt(
                 purchasedList[index].id,
@@ -171,27 +176,11 @@ contract TokenDistributor_4 is Ownable {
         }
     }
 
-    function release(bytes32 _id) external onlyOwner {
-        //TODO require
-        //release check
-        //refund check
-        //blockTime check
-
-        uint index = indexId[_id];
-        if (!purchasedList[index].release || !purchasedList[index].refund) {
-            purchasedList[index].release = true;
-        }
-        //TODO token safeTransfer
-    }
-
     function refund(bytes32 _id) external onlyOwner returns (bool, uint256) {
-        //TODO require
-        //release check
-        //refund check
-        //blockTime check
-
         uint index = indexId[_id];
-        if (!purchasedList[index].release || !purchasedList[index].refund) {
+        if (!purchasedList[index].release && !purchasedList[index].refund) {
+            Product product = Product(purchasedList[index].product);
+            require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup));
             purchasedList[index].refund = true;
 
             emit Receipt(
@@ -207,6 +196,25 @@ contract TokenDistributor_4 is Ownable {
         } else {
             return (false, 0);
         }
-        //TODO token safeTransfer
+    }
+
+    function buyerAddressTransfer(bytes32 _id, address _from, address _to)
+        external
+        onlyOwner
+        returns (bool)
+    {
+        uint index = indexId[_id];
+        if (purchasedList[index].buyer == _from) {
+            purchasedList[index].buyer = _to;
+            emit BuyerAddressTransfer(_id, _from, _to);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function withdrawToken(address _Owner) external onlyOwner {
+        token.safeTransfer(_Owner, token.balanceOf(address(this)));
+        emit WithdrawToken(_Owner, token.balanceOf(address(this)));
     }
 }
