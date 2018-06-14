@@ -81,7 +81,7 @@ contract TokenDistributor is Ownable {
         require(_id != 0);
 
         uint index = indexId[_id];
-        if (!purchasedList[index].release || !purchasedList[index].refund) {
+        if (!purchasedList[index].release && !purchasedList[index].refund) {
             purchasedList[index].amount = purchasedList[index].amount.add(_amount);
 
             emit Receipt(
