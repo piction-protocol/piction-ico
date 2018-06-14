@@ -32,7 +32,7 @@ contract TokenDistributor is Ownable {
         token = ERC20(_token);
     }
 
-    function addPrucahsed(address _buyer, address _product, uint256 _amount)
+    function addPurchased(address _buyer, address _product, uint256 _amount)
         external
         onlyOwner
         validAddress(_buyer)
