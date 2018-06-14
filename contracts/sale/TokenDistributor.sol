@@ -47,7 +47,7 @@ contract TokenDistributor is Ownable {
         returns(uint256)
     {
         //TODO require
-        return purchasedList[_buyer][_product].amount
+        return purchasedList[_buyer][_product].amount;
     }
 
     function setCriterionTime(address _buyer, address _product, uint256 _criterionTime)

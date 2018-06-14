@@ -12,13 +12,15 @@ contract TokenDistributor is Ownable {
 
     struct Purchased {
         address buyer;
+        address product;
         uint256 amount;
         uint256 criterionTime;
         bool release;
+        bool refund;
     }
 
     ERC20 token;
-    mapping (address => Purchased[]) purchasedList;
+    Purchased[] purchasedList;
 
     modifier validAddress(address _account) {
         require(_account != address(0));
@@ -37,7 +39,7 @@ contract TokenDistributor is Ownable {
         validAddress(_product)
     {
         //TODO require
-        purchasedList[_product].push(Purchased(_buyer, _amount, 0, false));
+        purchasedList[_product].push(Purchased(_buyer, _product, _amount, 0, false, false));
     }
 
     function getAmount(address _buyer, address _product)
@@ -49,9 +51,10 @@ contract TokenDistributor is Ownable {
     {
         //TODO require
 
-        for(uint index=0; index < purchasedList[_product].length; index++) {
-            if (purchasedList[_product][index].buyer == _buyer) {
-                return purchasedList[_product][index].amount;
+        for(uint index=0; index < purchasedList.length; index++) {
+            if (purchasedList[index].buyer == _buyer
+                && purchasedList[index].product == _product) {
+                return purchasedList[index].amount;
             }
         }
         return 0;
@@ -63,22 +66,28 @@ contract TokenDistributor is Ownable {
         validAddress(_product)
     {
         //TODO require
-        for(uint index=0; index < purchasedList[_product].length; index++) {
-            purchasedList[_product][index].criterionTime = _criterionTime;
+
+        for(uint index=0; index < purchasedList.length; index++) {
+            if (purchasedList[index].product == _product) {
+                purchasedList[index].criterionTime = _criterionTime;
+            }
         }
     }
 
-    function releaseMany(address _product)
+    function releaseMany(address _product, bool release)
         external
         onlyOwner
         validAddress(_product)
     {
         //TODO require
         //release check
+        //refund check
         //blockTime check
 
-        for(uint index=0; index < purchasedList[_product].length; index++) {
-            purchasedList[_product][index].release = true;
+        for(uint index=0; index < purchasedList.length; index++) {
+            if (purchasedList[index].product == _product) {
+                purchasedList[index].release = release;
+            }
         }
         //TODO token safeTransfer
     }
@@ -89,12 +98,31 @@ contract TokenDistributor is Ownable {
     {
         //TODO require
         //release check
+        //refund check
         //blockTime check
 
-        for(uint index=0; index < purchasedList[_product].length; index++) {
-            if (purchasedList[_product][index].buyer == msg.sender) {
-                purchasedList[_product][index].release = true;
+        for(uint index=0; index < purchasedList.length; index++) {
+            if (purchasedList[index].buyer == msg.sender
+                && purchasedList[index].product == _product) {
+                purchasedList[index].release = true;
                 //TODO token safeTransfer
+            }
+        }
+    }
+
+    function refund(address _buyer, address _product, bool refund)
+        external
+        onlyOwner
+        validAddress(_buyer)
+        validAddress(_product)
+    {
+        //TODO require
+        //release check
+
+        for(uint index=0; index < purchasedList.length; index++) {
+            if (purchasedList[index].buyer == _buyer
+                && purchasedList[index].product == _product) {
+                purchasedList[index].refund = refund;
             }
         }
     }
