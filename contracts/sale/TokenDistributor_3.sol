@@ -39,7 +39,7 @@ contract TokenDistributor_3 is Ownable {
         validAddress(_product)
     {
         //TODO require
-        purchasedList[_product].push(Purchased(_buyer, _product, _amount, 0, false, false));
+        purchasedList.push(Purchased(_buyer, _product, _amount, 0, false, false));
     }
 
     function getAmount(address _buyer, address _product)
