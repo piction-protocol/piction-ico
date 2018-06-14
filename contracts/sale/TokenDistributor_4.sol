@@ -41,6 +41,16 @@ contract TokenDistributor_4 is Ownable {
         bool refund
     );
 
+    event ReceiptList(
+        bytes32 id,
+        address buyer,
+        address product,
+        uint256 amount,
+        uint256 criterionTime,
+        bool release,
+        bool refund
+    );
+
     constructor(address _token) {
         token = ERC20(_token);
         nonce = 0;
@@ -79,6 +89,19 @@ contract TokenDistributor_4 is Ownable {
             return 0;
         } else {
             return purchasedList[index].amount;
+        }
+    }
+
+    function getPurchasedList() external onlyOwner {
+        for(uint index=0; index < purchasedList.length; index++) {
+            emit ReceiptList(
+                purchasedList[index].id,
+                purchasedList[index].buyer,
+                purchasedList[index].product,
+                purchasedList[index].amount,
+                purchasedList[index].criterionTime,
+                purchasedList[index].release,
+                purchasedList[index].refund);
         }
     }
 
