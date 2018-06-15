@@ -58,11 +58,13 @@ contract TokenDistributor is ExtendsOwnable {
         onlyOwner
         validAddress(_buyer)
         validAddress(_product)
+        returns(bytes32)
     {
         nonce = nonce.add(1);
         bytes32 id = keccak256(_buyer, block.timestamp, nonce);
         purchasedList.push(Purchased(id, _buyer, _product, _amount, 0, false, false));
         indexId[id] = purchasedList.length;
+        return id;
 
         emit Receipt(id, _buyer, _product, _amount, 0, false, false);
     }
@@ -121,6 +123,7 @@ contract TokenDistributor is ExtendsOwnable {
                 && !purchasedList[index].refund)
             {
                 Product product = Product(purchasedList[index].product);
+                require(purchasedList[index].criterionTime != 0);
                 require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup()));
                 purchasedList[index].release = true;
 
@@ -144,6 +147,7 @@ contract TokenDistributor is ExtendsOwnable {
 
         if (isLive(index)) {
             Product product = Product(purchasedList[index].product);
+            require(purchasedList[index].criterionTime != 0);
             require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup()));
             purchasedList[index].release = true;
 

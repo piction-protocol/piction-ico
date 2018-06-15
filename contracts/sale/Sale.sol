@@ -119,7 +119,7 @@ contract Sale is Stateable {
         if(buyerAmount > 0) {
             tokenDistributor.addPurchased(buyers[product.name()][buyer], purchase.mul(product.rate()));
         } else {
-            tokenDistributor.addPurchased(buyer, productAddress, purchase.mul(product.rate()));
+            buyers[product.name()][buyer] = tokenDistributor.addPurchased(buyer, productAddress, purchase.mul(product.rate()));
         }
 
         wallet.transfer(purchase);
