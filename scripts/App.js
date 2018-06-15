@@ -26,6 +26,6 @@ if (process.env.PRIVATE_KEY) {
 
 global.sendDefaultParams = {
     from: web3.eth.accounts.wallet[0].address,
-    gas: 4000000,
-    gasPrice: '100000000000'
+    gas: 4500000,
+    gasPrice: '1000000000'
 }
