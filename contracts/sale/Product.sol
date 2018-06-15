@@ -4,7 +4,7 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "contracts/utils/ExtendsOwnable.sol";
 
 /**
- * @title ProductBasic
+ * @title Product
  * @dev Simpler version of Product interface
  */
 contract Product is ExtendsOwnable {
