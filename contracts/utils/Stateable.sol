@@ -4,7 +4,7 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 contract Stateable is Ownable {
-    enum State{Unknown, Preparing, Starting, Pausing, finished}
+    enum State{Unknown, Preparing, Starting, Pausing, Finished}
     State state;
 
     event OnStateChange(string _state);
@@ -29,7 +29,7 @@ contract Stateable is Ownable {
     }
 
     modifier finished() {
-        require(getState() == State.finished);
+        require(getState() == State.Finished);
         _;
     }
 
@@ -46,7 +46,7 @@ contract Stateable is Ownable {
         if (State.Preparing == _state) return "Preparing";
         if (State.Starting == _state) return "Starting";
         if (State.Pausing == _state) return "Pausing";
-        if (State.finished == _state) return "Finished";
+        if (State.Finished == _state) return "Finished";
         return "";
     }
 }
