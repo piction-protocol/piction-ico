@@ -16,6 +16,7 @@ contract Sale is Stateable {
     Product public product;
     TokenDistributor public tokenDistributor;
 
+    mapping (string => bool) isRegistered;
     mapping (string => mapping (address => bytes32)) buyers;
 
     modifier validAddress(address _account) {
@@ -49,6 +50,7 @@ contract Sale is Stateable {
         whiteList = Whitelist(_whiteList);
         product = Product(_product);
         tokenDistributor = TokenDistributor(_tokenDistributor);
+        isRegistered[product.name()] = true;
 
         setState(State.Preparing);
     }
@@ -56,7 +58,8 @@ contract Sale is Stateable {
     function registerProduct(address _product) external onlyOwner changeProduct validAddress(_product) {
         product = Product(_product);
 
-        require(buyers[product.name()] != 0);
+        require(!isRegistered[product.name()]);
+        isRegistered[product.name()] = true;
 
         setState(State.Preparing);
 
