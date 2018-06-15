@@ -1,16 +1,15 @@
 pragma solidity ^0.4.23;
 
+import "openzeppelin-solidity/contracts/math/Math.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "openzeppelin-solidity/contracts/ownership/Whitelist.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "openzeppelin-solidity/contracts/access/Whitelist.sol";
 
-import "./Product.sol"
-import "./TokenDistributor.sol"
+import "./TokenDistributor.sol";
 import "../utils/Stateable.sol";
-import "../utils/PixelMath.sol";
 
 contract Sale is Stateable {
     using SafeMath for uint256;
+    using Math for uint256;
 
     address public wallet;
     Whitelist public whiteList;
@@ -26,7 +25,7 @@ contract Sale is Stateable {
     }
 
     modifier changeProduct() {
-        require(getState() == State.Preparing || getState() == State.finished);
+        require(getState() == State.Preparing || getState() == State.Finished);
         _;
     }
 
@@ -50,7 +49,7 @@ contract Sale is Stateable {
     }
 
     function registerProduct(address _product) external onlyOwner changeProduct validAddress(_product) {
-        delete buyers;
+        //delete buyers;
         setState(State.Preparing);
         product = Product(_product);
 
@@ -59,7 +58,7 @@ contract Sale is Stateable {
 
     function setTokenDistributor(address _tokenDistributor) external onlyOwner validAddress(_tokenDistributor) {
         tokenDistributor = TokenDistributor(_tokenDistributor);
-        emit ChangeExternalAddress(_product, "TokenDistributor");
+        emit ChangeExternalAddress(_tokenDistributor, "TokenDistributor");
     }
 
     function setWhitelist(address _whitelist) external onlyOwner validAddress(_whitelist) {
@@ -80,8 +79,8 @@ contract Sale is Stateable {
         setState(State.Starting);
     }
 
-    function finished() external onlyOwner {
-        setState(State.finished);
+    function finish() external onlyOwner {
+        setState(State.Finished);
     }
 
     function () external payable {
@@ -103,7 +102,7 @@ contract Sale is Stateable {
         uint256 purchase;
         uint256 refund;
         uint256 totalAmount;
-        (purchase, refund, totalAmount) = getPurchaseDetail(buyer, amount, buyerAmount);
+        (purchase, refund, totalAmount) = getPurchaseDetail(buyerAmount, amount);
 
         product.addWeiRaised(totalAmount);
 
@@ -120,16 +119,16 @@ contract Sale is Stateable {
         }
 
         if(totalAmount >= product.maxcap()) {
-            setState(state.finished);
+            setState(State.Finished);
         }
 
-        emit Purchase(buyer, purchase, refund, purchase.mul(rate));
+        emit Purchase(buyer, purchase, refund, purchase.mul(product.rate()));
     }
 
-    function getPurchaseDetail(address _buyer, uint256 _amount, uint256 _buyerAmount) private view returns (uint256, uint256, uint256) {
-        uint256 d1 = product.maxcap.sub(product.weiRaised());
-        uint256 d2 = product.exceed.sub(_buyerAmount);
-        uint256 possibleAmount = min(min(d1, d2), _amount);
+    function getPurchaseDetail(uint256 _buyerAmount, uint256 _amount) private view returns (uint256, uint256, uint256) {
+        uint256 d1 = product.maxcap().sub(product.weiRaised());
+        uint256 d2 = product.exceed().sub(_buyerAmount);
+        uint256 possibleAmount = (d1.min256(d2)).min256(_amount);
 
         return (possibleAmount, _amount.sub(possibleAmount), possibleAmount.add(product.weiRaised()));
     }

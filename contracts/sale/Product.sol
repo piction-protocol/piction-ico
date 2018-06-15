@@ -1,13 +1,13 @@
 pragma solidity ^0.4.23;
 
-import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
-import "contracts/utils/Ownable.sol";
+import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "contracts/utils/ExtendsOwnable.sol";
 
 /**
  * @title ProductBasic
  * @dev Simpler version of Product interface
  */
-contract Product is Ownable {
+contract Product is ExtendsOwnable {
     using SafeMath for uint256;
 
     string public name;
