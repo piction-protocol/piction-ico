@@ -91,14 +91,14 @@ contract Sale is Stateable {
         require(getState() == State.Starting);
         require(whiteList.whitelist(buyer));
         require(buyer != address(0));
-        require(product.weiRaised < product.maxcap);
+        require(product.weiRaised() < product.maxcap());
 
         address productAddress = address(product);
         uint256 tokenAmount = tokenDistributor.getAmount(buyers[buyer]);
-        uint256 buyerAmount = (tokenAmount > 0) ? tokenAmount.div(product.rate) : 0 ;
+        uint256 buyerAmount = (tokenAmount > 0) ? tokenAmount.div(product.rate()) : 0 ;
 
-        require(buyerAmount < product.exceed);
-        require(buyerAmount.add(amount) >= product.minimum);
+        require(buyerAmount < product.exceed());
+        require(buyerAmount.add(amount) >= product.minimum());
 
         uint256 purchase;
         uint256 refund;
@@ -108,9 +108,9 @@ contract Sale is Stateable {
         product.addWeiRaised(totalAmount);
 
         if(buyerAmount > 0) {
-            tokenDistributor.addPurchased(buyers[buyer], purchase.mul(product.rate));
+            tokenDistributor.addPurchased(buyers[buyer], purchase.mul(product.rate()));
         } else {
-            tokenDistributor.addPurchased(buyer, productAddress, purchase.mul(product.rate));
+            tokenDistributor.addPurchased(buyer, productAddress, purchase.mul(product.rate()));
         }
 
         wallet.transfer(purchase);
@@ -119,7 +119,7 @@ contract Sale is Stateable {
             buyer.transfer(refund);
         }
 
-        if(totalAmount >= product.maxcap) {
+        if(totalAmount >= product.maxcap()) {
             setState(state.finished);
         }
 
@@ -127,11 +127,11 @@ contract Sale is Stateable {
     }
 
     function getPurchaseDetail(address _buyer, uint256 _amount, uint256 _buyerAmount) private view returns (uint256, uint256, uint256) {
-        uint256 d1 = product.maxcap.sub(product.weiRaised);
+        uint256 d1 = product.maxcap.sub(product.weiRaised());
         uint256 d2 = product.exceed.sub(_buyerAmount);
         uint256 possibleAmount = min(min(d1, d2), _amount);
 
-        return (possibleAmount, _amount.sub(possibleAmount), possibleAmount.add(product.weiRaised));
+        return (possibleAmount, _amount.sub(possibleAmount), possibleAmount.add(product.weiRaised()));
     }
 
     function refund(address _buyerAddress) external onlyOwner validAddress(_buyerAddress) {
