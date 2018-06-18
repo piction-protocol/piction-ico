@@ -53,7 +53,7 @@ contract TokenDistributor is ExtendsOwnable {
         purchasedList.push(Purchased(0, 0, 0, 0, 0, true, true));
     }
 
-    function addPurchased(address _buyer, address _product, uint256 _amount)
+    function setPurchased(address _buyer, address _product, uint256 _amount)
         external
         onlyOwner
         validAddress(_buyer)
@@ -98,6 +98,16 @@ contract TokenDistributor is ExtendsOwnable {
         } else {
             return purchasedList[index].amount;
         }
+    }
+
+    function getAmountFromBuyer(address _buyer, address _product) external view returns (uint256) {
+        for(uint index=1; index < purchasedList.length; index++) {
+            if (purchasedList[index].product == _product
+                && purchasedList[index].buyer == _buyer) {
+                return purchasedList[index].amount;
+            }
+        }
+        return 0;
     }
 
     function setCriterionTime(address _product, uint256 _criterionTime)
