@@ -33,7 +33,7 @@ contract Stateable is Ownable {
         _;
     }
 
-    function setState(State _state) internal onlyOwner {
+    function setState(State _state) internal {
         state = _state;
         emit OnStateChange(getKeyByValue(state));
     }
