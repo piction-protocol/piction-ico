@@ -112,6 +112,7 @@ contract Sale is Stateable {
         uint256 purchase;
         uint256 refund;
         uint256 totalAmount;
+
         (purchase, refund, totalAmount) = getPurchaseDetail(buyerAmount, amount);
 
         product.addWeiRaised(totalAmount);
@@ -119,7 +120,7 @@ contract Sale is Stateable {
         if(buyerAmount > 0) {
             tokenDistributor.addPurchased(buyers[product.name()][buyer], purchase.mul(product.rate()));
         } else {
-            buyers[product.name()][buyer] = tokenDistributor.addPurchased(buyer, productAddress, purchase.mul(product.rate()));
+            buyers[product.name()][buyer] = tokenDistributor.setPurchased(buyer, productAddress, purchase.mul(product.rate()));
         }
 
         wallet.transfer(purchase);
