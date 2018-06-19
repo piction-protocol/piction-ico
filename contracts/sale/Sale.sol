@@ -17,7 +17,7 @@ contract Sale is Stateable {
     TokenDistributor public tokenDistributor;
 
     mapping (string => bool) isRegistered;
-    mapping (string => mapping (address => uint256)) public buyers;
+    mapping (string => mapping (address => uint256)) private buyers;
 
     modifier validAddress(address _account) {
         require(_account != address(0));

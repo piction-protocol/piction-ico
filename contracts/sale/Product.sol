@@ -17,7 +17,6 @@ contract Product is ExtendsOwnable {
     uint256 public minimum;
     uint256 public rate;
     uint256 public lockup;
-    uint256 public criterionTime;
 
     constructor (
         string _name,
@@ -35,7 +34,6 @@ contract Product is ExtendsOwnable {
         minimum = _minimum;
         rate = _rate;
         lockup = _lockup;
-        criterionTime = 0;
     }
 
     function setWeiRaised(uint256 _weiRaised) external onlyOwner {
@@ -48,11 +46,5 @@ contract Product is ExtendsOwnable {
         require(weiRaised >= _weiRaised);
 
         weiRaised = weiRaised.sub(_weiRaised);
-    }
-
-    function setCriterionTime(uint256 _criterionTime) external onlyOwner {
-        require(_criterionTime > 0);
-
-        criterionTime = _criterionTime;
     }
 }
