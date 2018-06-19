@@ -134,7 +134,7 @@ contract TokenDistributor is ExtendsOwnable {
             {
                 Product product = Product(purchasedList[index].product);
                 require(purchasedList[index].criterionTime != 0);
-                require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup()));
+                require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup() * 1 days));
                 purchasedList[index].release = true;
 
                 require(token.balanceOf(address(this)) >= purchasedList[index].amount);
@@ -158,7 +158,7 @@ contract TokenDistributor is ExtendsOwnable {
         if (isLive(index)) {
             Product product = Product(purchasedList[index].product);
             require(purchasedList[index].criterionTime != 0);
-            require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup()));
+            require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup() * 1 days));
             purchasedList[index].release = true;
 
             require(token.balanceOf(address(this)) >= purchasedList[index].amount);
@@ -180,7 +180,7 @@ contract TokenDistributor is ExtendsOwnable {
 
         if (isLive(index)) {
             Product product = Product(purchasedList[index].product);
-            require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup()));
+            require(block.timestamp >= purchasedList[index].criterionTime.add(product.lockup() * 1 days));
             purchasedList[index].refund = true;
 
             emit Receipt(
