@@ -20,8 +20,9 @@ contract TokenDistributor is ExtendsOwnable {
     }
 
     ERC20 token;
-    Purchased[] public purchasedList;
-    uint256 index;
+    Purchased[] private purchasedList;
+    uint256 private index;
+    uint256 public criterionTime;
 
     modifier validAddress(address _account) {
         require(_account != address(0));
@@ -45,6 +46,7 @@ contract TokenDistributor is ExtendsOwnable {
     constructor(address _token) public {
         token = ERC20(_token);
         index = 0;
+        criterionTime = 0;
 
         //for error check
         purchasedList.push(Purchased(0, 0, 0, 0, true, true));
@@ -58,7 +60,7 @@ contract TokenDistributor is ExtendsOwnable {
         returns(uint256)
     {
         index = index.add(1);
-        purchasedList.push(Purchased(_buyer, _product, index, _amount, 0, false, false));
+        purchasedList.push(Purchased(_buyer, _product, index, _amount, false, false));
         return index;
 
         emit Receipt(_buyer, _product, index, _amount, false, false);
@@ -102,6 +104,12 @@ contract TokenDistributor is ExtendsOwnable {
         return 0;
     }
 
+    function setCriterionTime(uint256 _criterionTime) external onlyOwner {
+        require(_criterionTime > 0);
+
+        criterionTime = _criterionTime;
+    }
+
     function releaseProduct(address _product)
         external
         onlyOwner
@@ -112,9 +120,9 @@ contract TokenDistributor is ExtendsOwnable {
                 && !purchasedList[i].release
                 && !purchasedList[i].refund)
             {
+                require(criterionTime != 0);
                 Product product = Product(purchasedList[i].product);
-                require(product.criterionTime != 0);
-                require(block.timestamp >= product.criterionTime.add(product.lockup() * 1 days));
+                require(block.timestamp >= criterionTime.add(product.lockup() * 1 days));
                 purchasedList[i].release = true;
 
                 require(token.balanceOf(address(this)) >= purchasedList[i].amount);
@@ -132,10 +140,12 @@ contract TokenDistributor is ExtendsOwnable {
     }
 
     function release(uint256 _index) external onlyOwner {
+        require(_index != 0);
+
         if (isLive(_index)) {
+            require(criterionTime != 0);
             Product product = Product(purchasedList[_index].product);
-            require(product.criterionTime != 0);
-            require(block.timestamp >= product.criterionTime.add(product.lockup() * 1 days));
+            require(block.timestamp >= criterionTime.add(product.lockup() * 1 days));
             purchasedList[_index].release = true;
 
             require(token.balanceOf(address(this)) >= purchasedList[_index].amount);
@@ -153,7 +163,6 @@ contract TokenDistributor is ExtendsOwnable {
 
     function refund(uint _index) external onlyOwner returns (bool, uint256) {
         if (isLive(_index)) {
-            Product product = Product(purchasedList[_index].product);
             purchasedList[_index].refund = true;
 
             emit Receipt(
