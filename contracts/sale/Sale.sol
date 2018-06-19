@@ -17,7 +17,7 @@ contract Sale is Stateable {
     TokenDistributor public tokenDistributor;
 
     mapping (string => bool) isRegistered;
-    mapping (string => mapping (address => bytes32)) buyers;
+    mapping (string => mapping (address => uint256)) public buyers;
 
     modifier validAddress(address _account) {
         require(_account != address(0));
@@ -112,14 +112,15 @@ contract Sale is Stateable {
         uint256 purchase;
         uint256 refund;
         uint256 totalAmount;
+
         (purchase, refund, totalAmount) = getPurchaseDetail(buyerAmount, amount);
 
-        product.addWeiRaised(totalAmount);
+        product.setWeiRaised(totalAmount);
 
         if(buyerAmount > 0) {
             tokenDistributor.addPurchased(buyers[product.name()][buyer], purchase.mul(product.rate()));
         } else {
-            tokenDistributor.addPurchased(buyer, productAddress, purchase.mul(product.rate()));
+            buyers[product.name()][buyer] = tokenDistributor.setPurchased(buyer, productAddress, purchase.mul(product.rate()));
         }
 
         wallet.transfer(purchase);
@@ -144,12 +145,14 @@ contract Sale is Stateable {
     }
 
     function refund(string _productName, address _buyerAddress) external onlyOwner validProductName(_productName) validAddress(_buyerAddress) {
+        require(getState() != State.Preparing);
+
         bool isRefund;
-        uint256 refundAmount;
-        (isRefund, refundAmount) = tokenDistributor.refund(buyers[_productName][_buyerAddress]);
+        uint256 refundToken;
+        (isRefund, refundToken) = tokenDistributor.refund(buyers[_productName][_buyerAddress]);
 
         if(isRefund) {
-            product.subWeiRaised(refundAmount);
+            product.subWeiRaised(refundToken.div(product.rate()));
             delete buyers[_productName][_buyerAddress];
         }
     }
@@ -164,7 +167,7 @@ contract Sale is Stateable {
 
         require(isChanged);
 
-        bytes32 fromId = buyers[_productName][_from];
+        uint256 fromId = buyers[_productName][_from];
         buyers[_productName][_to] = fromId;
         delete buyers[_productName][_from];
 
@@ -173,5 +176,5 @@ contract Sale is Stateable {
 
     event Purchase(address indexed _buyer, uint256 _purchased, uint256 _refund, uint256 _tokens);
     event ChangeExternalAddress(address _addr, string _name);
-    event BuyerAddressTransfer(address indexed _from, address indexed _to, bytes32 _id);
+    event BuyerAddressTransfer(address indexed _from, address indexed _to, uint256 _id);
 }
