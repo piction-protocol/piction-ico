@@ -47,6 +47,7 @@ contract("SALE", function (accounts) {
 
     before("Setup contract", async () => {
         token = await Pxl.new(initialBalance, {from: owner});
+        console.log("token address: ", token.address);
         product = await Product.new(
             productName,
             ether(productMaxcap),
@@ -55,12 +56,17 @@ contract("SALE", function (accounts) {
             productRate,
             productLockup,
             {from: owner});
+        console.log("product address: ", product.address);
         tokenDistributor = await TokenDistributor.new(token.address, {from: owner});
+        console.log("tokenDistributor address: ", tokenDistributor.address);
 
         whitelist = await Whitelist.new({from: owner});
+        console.log("whitelist address: ", whitelist.address);
         await whitelist.addAddressToWhitelist(buyer1, {from: owner});
 
         sale = await Sale.new(wallet, whitelist.address, product.address, tokenDistributor.address, {from: owner});
+        console.log("sale address: ", sale.address);
+
         await product.addOwner(sale.address, {from: owner});
         await tokenDistributor.addOwner(sale.address, {from: owner});
 
@@ -78,8 +84,11 @@ contract("SALE", function (accounts) {
                 console.log("error: ", error);
             }
 
-            const amount = await tokenDistributor.getAmountFromBuyer.call(buyer1, product.address);
-            console.log("amount: ", amount);
+            const id = await tokenDistributor.getId.call(buyer1, product.address);
+            console.log("id: ", id);
+
+            const amountById = await tokenDistributor.getAmount.call(id);
+            console.log("amountById: ", amountById);
         });
     });
 });

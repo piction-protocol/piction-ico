@@ -17,7 +17,7 @@ contract Sale is Stateable {
     TokenDistributor public tokenDistributor;
 
     mapping (string => bool) isRegistered;
-    mapping (string => mapping (address => bytes32)) buyers;
+    mapping (string => mapping (address => uint256)) buyers;
 
     modifier validAddress(address _account) {
         require(_account != address(0));
@@ -165,7 +165,7 @@ contract Sale is Stateable {
 
         require(isChanged);
 
-        bytes32 fromId = buyers[_productName][_from];
+        uint256 fromId = buyers[_productName][_from];
         buyers[_productName][_to] = fromId;
         delete buyers[_productName][_from];
 
@@ -174,5 +174,5 @@ contract Sale is Stateable {
 
     event Purchase(address indexed _buyer, uint256 _purchased, uint256 _refund, uint256 _tokens);
     event ChangeExternalAddress(address _addr, string _name);
-    event BuyerAddressTransfer(address indexed _from, address indexed _to, bytes32 _id);
+    event BuyerAddressTransfer(address indexed _from, address indexed _to, uint256 _id);
 }
