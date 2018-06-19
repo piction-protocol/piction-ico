@@ -60,7 +60,7 @@ contract TokenDistributor is ExtendsOwnable {
         returns(uint256)
     {
         index = index.add(1);
-        purchasedList.push(Purchased(_buyer, _product, index, _amount, 0, false, false));
+        purchasedList.push(Purchased(_buyer, _product, index, _amount, false, false));
         return index;
 
         emit Receipt(_buyer, _product, index, _amount, false, false);
@@ -140,6 +140,8 @@ contract TokenDistributor is ExtendsOwnable {
     }
 
     function release(uint256 _index) external onlyOwner {
+        require(_index != 0);
+
         if (isLive(_index)) {
             require(criterionTime != 0);
             Product product = Product(purchasedList[_index].product);
@@ -161,7 +163,6 @@ contract TokenDistributor is ExtendsOwnable {
 
     function refund(uint _index) external onlyOwner returns (bool, uint256) {
         if (isLive(_index)) {
-            Product product = Product(purchasedList[_index].product);
             purchasedList[_index].refund = true;
 
             emit Receipt(
