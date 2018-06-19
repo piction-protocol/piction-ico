@@ -38,12 +38,10 @@ contract Sale is Stateable {
     constructor (
         address _wallet,
         address _whiteList,
-        address _product,
         address _tokenDistributor
     ) public {
         require(_wallet != address(0));
         require(_whiteList != address(0));
-        require(_product != address(0));
         require(_tokenDistributor != address(0));
 
         wallet = _wallet;
