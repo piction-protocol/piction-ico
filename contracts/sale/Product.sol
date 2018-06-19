@@ -4,7 +4,7 @@ import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "contracts/utils/ExtendsOwnable.sol";
 
 /**
- * @title ProductBasic
+ * @title Product
  * @dev Simpler version of Product interface
  */
 contract Product is ExtendsOwnable {
@@ -17,6 +17,7 @@ contract Product is ExtendsOwnable {
     uint256 public minimum;
     uint256 public rate;
     uint256 public lockup;
+    uint256 public criterionTime;
 
     constructor (
         string _name,
@@ -34,17 +35,24 @@ contract Product is ExtendsOwnable {
         minimum = _minimum;
         rate = _rate;
         lockup = _lockup;
+        criterionTime = 0;
     }
 
-    function addWeiRaised(uint256 _weiRaised) public onlyOwner {
+    function setWeiRaised(uint256 _weiRaised) external onlyOwner {
         require(weiRaised <= _weiRaised);
 
         weiRaised = _weiRaised;
     }
 
-    function subWeiRaised(uint256 _weiRaised) public onlyOwner {
+    function subWeiRaised(uint256 _weiRaised) external onlyOwner {
         require(weiRaised >= _weiRaised);
 
         weiRaised = weiRaised.sub(_weiRaised);
+    }
+
+    function setCriterionTime(uint256 _criterionTime) external onlyOwner {
+        require(_criterionTime > 0);
+
+        criterionTime = _criterionTime;
     }
 }
