@@ -64,9 +64,9 @@ contract("SALE", function (accounts) {
         console.log("whitelist address: ", whitelist.address);
         await whitelist.addAddressToWhitelist(buyer1, {from: owner});
 
-        sale = await Sale.new(wallet, whitelist.address, product.address, tokenDistributor.address, {from: owner});
+        sale = await Sale.new(wallet, whitelist.address, tokenDistributor.address, {from: owner});
         console.log("sale address: ", sale.address);
-
+        await sale.registerProduct(product.address, {from: owner});
         await product.addOwner(sale.address, {from: owner});
         await tokenDistributor.addOwner(sale.address, {from: owner});
 

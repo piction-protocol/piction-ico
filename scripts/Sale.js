@@ -29,10 +29,6 @@ const deploy = async () => {
         error('WHITELIST_ADDRESS is not registered. Please .env.{network} file update!')
         return;
     }
-    if (!process.env.PRODUCT_ADDRESS) {
-        error('PRODUCT_ADDRESS is not registered. Please .env.{network} file update!')
-        return;
-    }
     if (!process.env.TOKEN_DISTRIBUTOR_ADDRESS) {
         error('TOKEN_DISTRIBUTOR_ADDRESS is not registered. Please .env.{network} file update!')
         return;
@@ -41,15 +37,14 @@ const deploy = async () => {
     enquirer.register('confirm', require('prompt-confirm'));
     enquirer.question('confirmWalletAddress', `confirm WALLET_ADDRESS : ${process.env.WALLET_ADDRESS}`, {type: 'confirm'});
     enquirer.question('confirmWhitelistAddress', `confirm WHITELIST_ADDRESS : ${process.env.WHITELIST_ADDRESS}`, {type: 'confirm'});
-    enquirer.question('confirmProductAddress', `confirm PRODUCT_ADDRESS : ${process.env.PRODUCT_ADDRESS}`, {type: 'confirm'});
     enquirer.question('confirmTokenDistributorAddress', `confirm TOKEN_DISTRIBUTOR_ADDRESS : ${process.env.TOKEN_DISTRIBUTOR_ADDRESS}`, {type: 'confirm'});
-    let answer = await enquirer.prompt(['confirmWalletAddress', 'confirmWhitelistAddress', 'confirmProductAddress', 'confirmTokenDistributorAddress']);
-    if (!answer.confirmWalletAddress || !answer.confirmWhitelistAddress || !answer.confirmProductAddress || !answer.confirmTokenDistributorAddress) return;
+    let answer = await enquirer.prompt(['confirmWalletAddress', 'confirmWhitelistAddress', 'confirmTokenDistributorAddress']);
+    if (!answer.confirmWalletAddress || !answer.confirmWhitelistAddress || !answer.confirmTokenDistributorAddress) return;
 
     let contract = new web3.eth.Contract(input.abi);
     contract.deploy({
         data: input.bytecode,
-        arguments: [process.env.WALLET_ADDRESS, process.env.WHITELIST_ADDRESS, process.env.PRODUCT_ADDRESS, process.env.TOKEN_DISTRIBUTOR_ADDRESS]
+        arguments: [process.env.WALLET_ADDRESS, process.env.WHITELIST_ADDRESS, process.env.TOKEN_DISTRIBUTOR_ADDRESS]
     })
         .send(sendDefaultParams)
         .then(async newContractInstance => {

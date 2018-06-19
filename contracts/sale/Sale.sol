@@ -31,28 +31,22 @@ contract Sale is Stateable {
     }
 
     modifier changeProduct() {
-        require(getState() == State.Preparing || getState() == State.Finished);
+        require(getState() == State.Unknown || getState() == State.Preparing || getState() == State.Finished);
         _;
     }
 
     constructor (
         address _wallet,
         address _whiteList,
-        address _product,
         address _tokenDistributor
     ) public {
         require(_wallet != address(0));
         require(_whiteList != address(0));
-        require(_product != address(0));
         require(_tokenDistributor != address(0));
 
         wallet = _wallet;
         whiteList = Whitelist(_whiteList);
-        product = Product(_product);
         tokenDistributor = TokenDistributor(_tokenDistributor);
-        isRegistered[product.name()] = true;
-
-        setState(State.Preparing);
     }
 
     function registerProduct(address _product) external onlyOwner changeProduct validAddress(_product) {
@@ -82,10 +76,14 @@ contract Sale is Stateable {
     }
 
     function pause() external onlyOwner {
+        require(getState() == State.Starting);
+
         setState(State.Pausing);
     }
 
     function start() external onlyOwner {
+        require(getState() == State.Preparing || getState() == State.Pausing);
+
         setState(State.Starting);
     }
 
@@ -145,11 +143,13 @@ contract Sale is Stateable {
     }
 
     function refund(string _productName, address _buyerAddress) external onlyOwner validProductName(_productName) validAddress(_buyerAddress) {
-        require(getState() != State.Preparing);
+        require(buyers[_productName][_buyerAddress] > 0);
 
         bool isRefund;
         uint256 refundToken;
         (isRefund, refundToken) = tokenDistributor.refund(buyers[_productName][_buyerAddress]);
+
+        require(refundToken > 0);
 
         if(isRefund) {
             product.subWeiRaised(refundToken.div(product.rate()));
