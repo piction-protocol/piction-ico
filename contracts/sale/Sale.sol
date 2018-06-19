@@ -17,7 +17,7 @@ contract Sale is Stateable {
     TokenDistributor public tokenDistributor;
 
     mapping (string => bool) isRegistered;
-    mapping (string => mapping (address => uint256)) buyers;
+    mapping (string => mapping (address => uint256)) public buyers;
 
     modifier validAddress(address _account) {
         require(_account != address(0));
@@ -115,7 +115,7 @@ contract Sale is Stateable {
 
         (purchase, refund, totalAmount) = getPurchaseDetail(buyerAmount, amount);
 
-        product.addWeiRaised(totalAmount);
+        product.setWeiRaised(totalAmount);
 
         if(buyerAmount > 0) {
             tokenDistributor.addPurchased(buyers[product.name()][buyer], purchase.mul(product.rate()));
@@ -145,12 +145,14 @@ contract Sale is Stateable {
     }
 
     function refund(string _productName, address _buyerAddress) external onlyOwner validProductName(_productName) validAddress(_buyerAddress) {
+        require(getState() != State.Preparing);
+
         bool isRefund;
-        uint256 refundAmount;
-        (isRefund, refundAmount) = tokenDistributor.refund(buyers[_productName][_buyerAddress]);
+        uint256 refundToken;
+        (isRefund, refundToken) = tokenDistributor.refund(buyers[_productName][_buyerAddress]);
 
         if(isRefund) {
-            product.subWeiRaised(refundAmount);
+            product.subWeiRaised(refundToken.div(product.rate()));
             delete buyers[_productName][_buyerAddress];
         }
     }
