@@ -20,8 +20,8 @@ contract TokenDistributor is ExtendsOwnable {
     }
 
     ERC20 token;
-    Purchased[] purchasedList;
-    uint256 private index;
+    Purchased[] public purchasedList;
+    uint256 index;
 
     modifier validAddress(address _account) {
         require(_account != address(0));
