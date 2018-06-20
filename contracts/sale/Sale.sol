@@ -27,7 +27,7 @@ contract Sale is Stateable {
     }
 
     modifier validProductAddress(address _product) {
-        require(!isRegistered[address(_product)]);
+        require(!isRegistered[_product]);
         _;
     }
 
