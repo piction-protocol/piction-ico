@@ -207,7 +207,7 @@ contract TokenDistributor is ExtendsOwnable {
                 purchasedList[_index].release,
                 purchasedList[_index].refund);
 
-            return (true, purchasedList[_index].amount);
+            return (true, purchasedList[_index].etherAmount);
         } else {
             return (false, 0);
         }

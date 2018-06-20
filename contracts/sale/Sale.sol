@@ -16,8 +16,9 @@ contract Sale is Stateable {
     Product public product;
     TokenDistributor public tokenDistributor;
 
-    mapping (string => bool) isRegistered;
-    mapping (string => mapping (address => uint256)) private buyers;
+    mapping (address => bool) isRegistered;
+    mapping (address => uint256) weiRaised;
+    mapping (address => mapping (address => uint256)) buyers;
 
     modifier validAddress(address _account) {
         require(_account != address(0));
@@ -25,8 +26,8 @@ contract Sale is Stateable {
         _;
     }
 
-    modifier validProductName(string _productName) {
-        require(bytes(_productName).length != 0);
+    modifier validProductAddress(address _product) {
+        require(!isRegistered[address(_product)]);
         _;
     }
 
@@ -49,28 +50,44 @@ contract Sale is Stateable {
         tokenDistributor = TokenDistributor(_tokenDistributor);
     }
 
-    function registerProduct(address _product) external onlyOwner changeProduct validAddress(_product) {
+    function registerProduct(address _product)
+        external
+        onlyOwner
+        changeProduct
+        validAddress(_product)
+        validProductAddress(_product)
+    {
         product = Product(_product);
-
-        require(!isRegistered[product.name()]);
-        isRegistered[product.name()] = true;
+        isRegistered[_product] = true;
 
         setState(State.Preparing);
 
         emit ChangeExternalAddress(_product, "Product");
     }
 
-    function setTokenDistributor(address _tokenDistributor) external onlyOwner validAddress(_tokenDistributor) {
+    function setTokenDistributor(address _tokenDistributor)
+        external
+        onlyOwner
+        validAddress(_tokenDistributor)
+    {
         tokenDistributor = TokenDistributor(_tokenDistributor);
         emit ChangeExternalAddress(_tokenDistributor, "TokenDistributor");
     }
 
-    function setWhitelist(address _whitelist) external onlyOwner validAddress(_whitelist) {
+    function setWhitelist(address _whitelist)
+        external
+        onlyOwner
+        validAddress(_whitelist)
+    {
         whiteList = Whitelist(_whitelist);
         emit ChangeExternalAddress(_whitelist, "Whitelist");
     }
 
-    function setWallet(address _wallet) external onlyOwner validAddress(_wallet) {
+    function setWallet(address _wallet)
+        external
+        onlyOwner
+        validAddress(_wallet)
+    {
         wallet = _wallet;
         emit ChangeExternalAddress(_wallet, "Wallet");
     }
@@ -94,31 +111,26 @@ contract Sale is Stateable {
     function () external payable {
         address buyer = msg.sender;
         uint256 amount = msg.value;
+        address productAddress = address(product);
 
         require(getState() == State.Starting);
         require(whiteList.whitelist(buyer));
         require(buyer != address(0));
-        require(product.weiRaised() < product.maxcap());
+        require(weiRaised[productAddress] < product.maxcap());
 
-        address productAddress = address(product);
-        uint256 tokenAmount = tokenDistributor.getAmount(buyers[product.name()][buyer]);
-        uint256 buyerAmount = (tokenAmount > 0) ? tokenAmount.div(product.rate()) : 0 ;
+        uint256 buyerAmount = tokenDistributor.getEtherAmount(buyers[productAddress][buyer]);
 
         require(buyerAmount < product.exceed());
         require(buyerAmount.add(amount) >= product.minimum());
 
         uint256 purchase;
         uint256 refund;
-        uint256 totalAmount;
-
-        (purchase, refund, totalAmount) = getPurchaseDetail(buyerAmount, amount);
-
-        product.setWeiRaised(totalAmount);
+        (purchase, refund) = getPurchaseDetail(buyerAmount, amount, productAddress);
 
         if(buyerAmount > 0) {
-            tokenDistributor.addPurchased(buyers[product.name()][buyer], purchase.mul(product.rate()));
+            tokenDistributor.addPurchased(buyers[productAddress][buyer], purchase.mul(product.rate()), purchase);
         } else {
-            buyers[product.name()][buyer] = tokenDistributor.setPurchased(buyer, productAddress, purchase.mul(product.rate()));
+            buyers[productAddress][buyer] = tokenDistributor.setPurchased(buyer, productAddress, purchase.mul(product.rate()), purchase);
         }
 
         wallet.transfer(purchase);
@@ -127,51 +139,69 @@ contract Sale is Stateable {
             buyer.transfer(refund);
         }
 
-        if(totalAmount >= product.maxcap()) {
+        weiRaised[productAddress] = weiRaised[productAddress].add(purchase);
+
+        if(weiRaised[productAddress] >= product.maxcap()) {
             setState(State.Finished);
         }
 
         emit Purchase(buyer, purchase, refund, purchase.mul(product.rate()));
     }
 
-    function getPurchaseDetail(uint256 _buyerAmount, uint256 _amount) private view returns (uint256, uint256, uint256) {
-        uint256 d1 = product.maxcap().sub(product.weiRaised());
+    function getPurchaseDetail(uint256 _buyerAmount, uint256 _amount, address _product)
+        private
+        view
+        returns (uint256, uint256)
+    {
+        uint256 d1 = product.maxcap().sub(weiRaised[_product]);
         uint256 d2 = product.exceed().sub(_buyerAmount);
         uint256 possibleAmount = (d1.min256(d2)).min256(_amount);
 
-        return (possibleAmount, _amount.sub(possibleAmount), possibleAmount.add(product.weiRaised()));
+        return (possibleAmount, _amount.sub(possibleAmount));
     }
 
-    function refund(string _productName, address _buyerAddress) external onlyOwner validProductName(_productName) validAddress(_buyerAddress) {
-        require(buyers[_productName][_buyerAddress] > 0);
+    function refund(address _product, address _buyer)
+        external
+        onlyOwner
+        validAddress(_product)
+        validAddress(_buyer)
+        validProductAddress(_product)
+    {
+        require(buyers[_product][_buyer] > 0);
 
         bool isRefund;
-        uint256 refundToken;
-        (isRefund, refundToken) = tokenDistributor.refund(buyers[_productName][_buyerAddress]);
+        uint256 refundAmount;
+        (isRefund, refundAmount) = tokenDistributor.refund(buyers[_product][_buyer]);
 
-        require(refundToken > 0);
+        require(refundAmount > 0);
 
         if(isRefund) {
-            product.subWeiRaised(refundToken.div(product.rate()));
-            delete buyers[_productName][_buyerAddress];
+            weiRaised[_product] = weiRaised[_product].sub(refundAmount);
+            delete buyers[_product][_buyer];
         }
     }
 
-    function buyerAddressTransfer(string _productName, address _from, address _to) external onlyOwner validProductName(_productName) validAddress(_from) validAddress(_to) {
+    function buyerAddressTransfer(address _product, address _from, address _to)
+        external
+        onlyOwner
+        validAddress(_from)
+        validAddress(_to)
+        validProductAddress(_product)
+    {
         require(whiteList.whitelist(_from));
         require(whiteList.whitelist(_to));
-        require(tokenDistributor.getAmount(buyers[_productName][_from]) > 0);
-        require(tokenDistributor.getAmount(buyers[_productName][_to]) == 0);
+        require(tokenDistributor.getEtherAmount(buyers[_product][_from]) > 0);
+        require(tokenDistributor.getEtherAmount(buyers[_product][_to]) == 0);
 
-        bool isChanged = tokenDistributor.buyerAddressTransfer(buyers[_productName][_from], _from, _to);
+        bool isChanged = tokenDistributor.buyerAddressTransfer(buyers[_product][_from], _from, _to);
 
         require(isChanged);
 
-        uint256 fromId = buyers[_productName][_from];
-        buyers[_productName][_to] = fromId;
-        delete buyers[_productName][_from];
+        uint256 fromId = buyers[_product][_from];
+        buyers[_product][_to] = fromId;
+        delete buyers[_product][_from];
 
-        emit BuyerAddressTransfer(_from, _to, buyers[_productName][_to]);
+        emit BuyerAddressTransfer(_from, _to, buyers[_product][_to]);
     }
 
     event Purchase(address indexed _buyer, uint256 _purchased, uint256 _refund, uint256 _tokens);
