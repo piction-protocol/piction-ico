@@ -51,7 +51,7 @@ contract PXL is StandardToken, ExtendsOwnable {
         isTransferable = true;
     }
 
-    function getTokenTransferable() external onlyOwner view returns (bool) {
+    function getTokenTransferable() external view returns (bool) {
         return isTransferable;
     }
 
