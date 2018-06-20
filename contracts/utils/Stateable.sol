@@ -43,6 +43,7 @@ contract Stateable is Ownable {
     }
 
     function getKeyByValue(State _state) public pure returns (string) {
+        if (State.Unknown == _state) return "Unknown";
         if (State.Preparing == _state) return "Preparing";
         if (State.Starting == _state) return "Starting";
         if (State.Pausing == _state) return "Pausing";
