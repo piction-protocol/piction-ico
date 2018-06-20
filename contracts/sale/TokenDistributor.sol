@@ -39,6 +39,13 @@ contract TokenDistributor is ExtendsOwnable {
         bool refund
     );
 
+    event ReleaseByCount(
+        address product,
+        uint256 request,
+        uint256 succeed,
+        uint256 remainder
+    );
+
     event BuyerAddressTransfer(uint256 _id, address _from, address _to);
 
     event WithdrawToken(address to, uint256 amount);
@@ -110,55 +117,62 @@ contract TokenDistributor is ExtendsOwnable {
         criterionTime = _criterionTime;
     }
 
-    function releaseProduct(address _product)
+    function releaseByCount(address _product, uint256 _count)
         external
         onlyOwner
-        validAddress(_product)
     {
+        require(criterionTime != 0);
+
+        uint256 succeed = 0;
+        uint256 remainder = 0;
+
         for(uint i=1; i < purchasedList.length; i++) {
-            if (purchasedList[i].product == _product
-                && !purchasedList[i].release
-                && !purchasedList[i].refund)
-            {
-                require(criterionTime != 0);
-                Product product = Product(purchasedList[i].product);
-                require(block.timestamp >= criterionTime.add(product.lockup() * 1 days));
-                purchasedList[i].release = true;
+            if (isLive(i) && (purchasedList[i].product == _product)) {
+                if (succeed < _count) {
+                    Product product = Product(purchasedList[i].product);
+                    require(block.timestamp >= criterionTime.add(product.lockup() * 1 days));
+                    require(token.balanceOf(address(this)) >= purchasedList[i].amount);
 
-                require(token.balanceOf(address(this)) >= purchasedList[i].amount);
-                token.safeTransfer(purchasedList[i].buyer, purchasedList[i].amount);
+                    purchasedList[i].release = true;
+                    token.safeTransfer(purchasedList[i].buyer, purchasedList[i].amount);
 
-                emit Receipt(
-                    purchasedList[i].buyer,
-                    purchasedList[i].product,
-                    purchasedList[i].id,
-                    purchasedList[i].amount,
-                    purchasedList[i].release,
-                    purchasedList[i].refund);
+                    succeed = succeed.add(1);
+
+                    emit Receipt(
+                        purchasedList[i].buyer,
+                        purchasedList[i].product,
+                        purchasedList[i].id,
+                        purchasedList[i].amount,
+                        purchasedList[i].release,
+                        purchasedList[i].refund);
+                } else {
+                    remainder = remainder.add(1);
+                }
             }
         }
+
+        emit ReleaseByCount(_product, _count, succeed, remainder);
     }
 
     function release(uint256 _index) external onlyOwner {
         require(_index != 0);
+        require(criterionTime != 0);
+        require(isLive(_index));
 
-        if (isLive(_index)) {
-            require(criterionTime != 0);
-            Product product = Product(purchasedList[_index].product);
-            require(block.timestamp >= criterionTime.add(product.lockup() * 1 days));
-            purchasedList[_index].release = true;
+        Product product = Product(purchasedList[_index].product);
+        require(block.timestamp >= criterionTime.add(product.lockup() * 1 days));
+        require(token.balanceOf(address(this)) >= purchasedList[_index].amount);
 
-            require(token.balanceOf(address(this)) >= purchasedList[_index].amount);
-            token.safeTransfer(purchasedList[_index].buyer, purchasedList[_index].amount);
+        purchasedList[_index].release = true;
+        token.safeTransfer(purchasedList[_index].buyer, purchasedList[_index].amount);
 
-            emit Receipt(
-                purchasedList[_index].buyer,
-                purchasedList[_index].product,
-                purchasedList[_index].id,
-                purchasedList[_index].amount,
-                purchasedList[_index].release,
-                purchasedList[_index].refund);
-        }
+        emit Receipt(
+            purchasedList[_index].buyer,
+            purchasedList[_index].product,
+            purchasedList[_index].id,
+            purchasedList[_index].amount,
+            purchasedList[_index].release,
+            purchasedList[_index].refund);
     }
 
     function refund(uint _index) external onlyOwner returns (bool, uint256) {
