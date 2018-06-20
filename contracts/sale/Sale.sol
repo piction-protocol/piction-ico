@@ -58,6 +58,9 @@ contract Sale is Stateable {
         validProductAddress(_product)
     {
         product = Product(_product);
+
+        require(product.maxcap() > product.minimum());
+
         isRegistered[_product] = true;
 
         setState(State.Preparing);
