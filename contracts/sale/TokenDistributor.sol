@@ -3,6 +3,7 @@ pragma solidity ^0.4.23;
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "contracts/utils/ExtendsOwnable.sol";
 import "./Product.sol";
 
 contract TokenDistributor is ExtendsOwnable {
@@ -15,6 +16,7 @@ contract TokenDistributor is ExtendsOwnable {
         address product;
         uint256 id;
         uint256 amount;
+        uint256 etherAmount;
         bool release;
         bool refund;
     }
@@ -35,6 +37,7 @@ contract TokenDistributor is ExtendsOwnable {
         address product,
         uint256 id,
         uint256 amount,
+        uint256 etherAmount,
         bool release,
         bool refund
     );
@@ -56,10 +59,10 @@ contract TokenDistributor is ExtendsOwnable {
         criterionTime = 0;
 
         //for error check
-        purchasedList.push(Purchased(0, 0, 0, 0, true, true));
+        purchasedList.push(Purchased(0, 0, 0, 0, 0, true, true));
     }
 
-    function setPurchased(address _buyer, address _product, uint256 _amount)
+    function setPurchased(address _buyer, address _product, uint256 _amount, uint256 _etherAmount)
         external
         onlyOwner
         validAddress(_buyer)
@@ -67,23 +70,25 @@ contract TokenDistributor is ExtendsOwnable {
         returns(uint256)
     {
         index = index.add(1);
-        purchasedList.push(Purchased(_buyer, _product, index, _amount, false, false));
+        purchasedList.push(Purchased(_buyer, _product, index, _amount, _etherAmount, false, false));
         return index;
 
-        emit Receipt(_buyer, _product, index, _amount, false, false);
+        emit Receipt(_buyer, _product, index, _amount, _etherAmount, false, false);
     }
 
-    function addPurchased(uint256 _index, uint256 _amount) external onlyOwner {
+    function addPurchased(uint256 _index, uint256 _amount, uint256 _etherAmount) external onlyOwner {
         require(_index != 0);
 
         if (isLive(_index)) {
             purchasedList[_index].amount = purchasedList[_index].amount.add(_amount);
+            purchasedList[_index].etherAmount = purchasedList[_index].etherAmount.add(_etherAmount);
 
             emit Receipt(
                 purchasedList[_index].buyer,
                 purchasedList[_index].product,
                 purchasedList[_index].id,
                 _amount,
+                _etherAmount,
                 false,
                 false);
         }
@@ -98,6 +103,18 @@ contract TokenDistributor is ExtendsOwnable {
             return 0;
         } else {
             return purchasedList[_index].amount;
+        }
+    }
+
+    function getEtherAmount(uint256 _index) external view returns(uint256) {
+        if (_index == 0) {
+            return 0;
+        }
+
+        if (purchasedList[_index].release || purchasedList[_index].refund) {
+            return 0;
+        } else {
+            return purchasedList[_index].etherAmount;
         }
     }
 
@@ -143,6 +160,7 @@ contract TokenDistributor is ExtendsOwnable {
                         purchasedList[i].product,
                         purchasedList[i].id,
                         purchasedList[i].amount,
+                        purchasedList[i].etherAmount,
                         purchasedList[i].release,
                         purchasedList[i].refund);
                 } else {
@@ -171,6 +189,7 @@ contract TokenDistributor is ExtendsOwnable {
             purchasedList[_index].product,
             purchasedList[_index].id,
             purchasedList[_index].amount,
+            purchasedList[_index].etherAmount,
             purchasedList[_index].release,
             purchasedList[_index].refund);
     }
@@ -184,6 +203,7 @@ contract TokenDistributor is ExtendsOwnable {
                 purchasedList[_index].product,
                 purchasedList[_index].id,
                 purchasedList[_index].amount,
+                purchasedList[_index].etherAmount,
                 purchasedList[_index].release,
                 purchasedList[_index].refund);
 

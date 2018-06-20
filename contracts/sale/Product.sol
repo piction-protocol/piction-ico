@@ -1,15 +1,10 @@
 pragma solidity ^0.4.23;
 
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "contracts/utils/ExtendsOwnable.sol";
-
 /**
  * @title Product
  * @dev Simpler version of Product interface
  */
-contract Product is ExtendsOwnable {
-    using SafeMath for uint256;
-
+contract Product {
     string public name;
     uint256 public maxcap;
     uint256 public weiRaised;
@@ -34,17 +29,5 @@ contract Product is ExtendsOwnable {
         minimum = _minimum;
         rate = _rate;
         lockup = _lockup;
-    }
-
-    function setWeiRaised(uint256 _weiRaised) external onlyOwner {
-        require(weiRaised <= _weiRaised);
-
-        weiRaised = _weiRaised;
-    }
-
-    function subWeiRaised(uint256 _weiRaised) external onlyOwner {
-        require(weiRaised >= _weiRaised);
-
-        weiRaised = weiRaised.sub(_weiRaised);
     }
 }
