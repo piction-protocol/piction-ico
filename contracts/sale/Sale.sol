@@ -160,6 +160,15 @@ contract Sale is Stateable {
         return (possibleAmount, _amount.sub(possibleAmount));
     }
 
+    function getProductWeiRaised(address _product)
+        external
+        view
+        validAddress(_product)
+        returns (uint256)
+    {
+        return weiRaised[_product];
+    }
+
     function refund(address _product, address _buyer)
         external
         onlyOwner
