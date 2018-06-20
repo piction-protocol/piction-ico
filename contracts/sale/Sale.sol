@@ -165,7 +165,6 @@ contract Sale is Stateable {
         onlyOwner
         validAddress(_product)
         validAddress(_buyer)
-        validProductAddress(_product)
     {
         require(buyers[_product][_buyer] > 0);
 
@@ -184,9 +183,9 @@ contract Sale is Stateable {
     function buyerAddressTransfer(address _product, address _from, address _to)
         external
         onlyOwner
+        validAddress(_product)
         validAddress(_from)
         validAddress(_to)
-        validProductAddress(_product)
     {
         require(whiteList.whitelist(_from));
         require(whiteList.whitelist(_to));
