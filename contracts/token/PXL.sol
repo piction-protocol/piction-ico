@@ -51,6 +51,10 @@ contract PXL is StandardToken, ExtendsOwnable {
         isTransferable = true;
     }
 
+    function getLockState() external onlyOwner view returns (bool) {
+        return isTransferable;
+    }
+
     /**
      * @dev Transfer tokens from one address to another
      *
