@@ -121,7 +121,8 @@ contract TokenDistributor is ExtendsOwnable {
     function getId(address _buyer, address _product) external view returns (uint256) {
         for(uint i=1; i < purchasedList.length; i++) {
             if (purchasedList[i].product == _product
-                && purchasedList[i].buyer == _buyer) {
+                && purchasedList[i].buyer == _buyer
+                && !purchasedList[i].refund) {
                 return purchasedList[i].id;
             }
         }
