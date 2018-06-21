@@ -31,7 +31,7 @@ contract Sale is Stateable {
         _;
     }
 
-    modifier changeProduct() {
+    modifier checkStatus() {
         require(getState() == State.Unknown || getState() == State.Preparing || getState() == State.Finished);
         _;
     }
@@ -53,7 +53,7 @@ contract Sale is Stateable {
     function registerProduct(address _product)
         external
         onlyOwner
-        changeProduct
+        checkStatus
         validAddress(_product)
         validProductAddress(_product)
     {
@@ -71,6 +71,7 @@ contract Sale is Stateable {
     function setTokenDistributor(address _tokenDistributor)
         external
         onlyOwner
+        checkStatus
         validAddress(_tokenDistributor)
     {
         tokenDistributor = TokenDistributor(_tokenDistributor);
