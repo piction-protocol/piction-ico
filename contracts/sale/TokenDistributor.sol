@@ -177,6 +177,10 @@ contract TokenDistributor is ExtendsOwnable {
         bool[] memory release = new bool[](count);
         bool[] memory refund = new bool[](count);
 
+        if (count == 0) {
+            return (product, amount, etherAmount, release, refund);
+        }
+
         uint256 receiptIndex = 0;
         for(i = 1; i < purchasedList.length; i++) {
             if (purchasedList[i].buyer == _buyer) {
