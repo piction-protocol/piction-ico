@@ -155,7 +155,7 @@ contract TokenDistributor is ExtendsOwnable {
             release[receiptIndex] = purchasedList[i].release;
             refund[receiptIndex] = purchasedList[i].refund;
 
-            receiptIndex = receiptIndex.add(i);
+            receiptIndex = receiptIndex.add(1);
         }
         return (product, buyer, id, amount, etherAmount, release, refund);
 
@@ -194,7 +194,7 @@ contract TokenDistributor is ExtendsOwnable {
                 release[receiptIndex] = purchasedList[i].release;
                 refund[receiptIndex] = purchasedList[i].refund;
 
-                receiptIndex = receiptIndex.add(i);
+                receiptIndex = receiptIndex.add(1);
             }
         }
         return (product, amount, etherAmount, release, refund);
