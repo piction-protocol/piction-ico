@@ -63,6 +63,7 @@ contract("SALE", function (accounts) {
         whitelist = await Whitelist.new({from: owner});
         console.log("whitelist address: ", whitelist.address);
         await whitelist.addAddressToWhitelist(buyer1, {from: owner});
+        await whitelist.addAddressToWhitelist(buyer2, {from: owner});
 
         sale = await Sale.new(wallet, whitelist.address, tokenDistributor.address, {from: owner});
         console.log("sale address: ", sale.address);
@@ -89,6 +90,62 @@ contract("SALE", function (accounts) {
 
             const amountById = await tokenDistributor.getAmount.call(id);
             console.log("amountById: ", amountById);
+
+            try { await web3.eth.sendTransaction({ to: sale.address, value: ether(3), from: buyer2, gas: gas }); }
+            catch(error) {
+                console.log("error: ", error);
+            }
+
+            const receiptList = await tokenDistributor.getAllReceipt.call({from:owner})
+            const numReceipt = receiptList[0].length;
+
+            const FIELD_PRODUCT = 0;
+            const FIELD_BUYER = 1;
+            const FIELD_ID = 2;
+            const FIELD_AMOUNT = 3;
+            const FIELD_ETHERAMOUNT = 4;
+            const FIELD_RELEASE = 5;
+            const FIELD_REFUND = 6;
+
+            let receiptStructs = [];
+            for (let i = 0; i < numReceipt; i++) {
+                const receipt = {
+                    product: receiptList[FIELD_PRODUCT][i],
+                    buyer:  receiptList[FIELD_BUYER][i],
+                    id: receiptList[FIELD_ID][i].toNumber(),
+                    amount: receiptList[FIELD_AMOUNT][i].toNumber(),
+                    etherAmount: receiptList[FIELD_ETHERAMOUNT][i].toNumber(),
+                    release: receiptList[FIELD_RELEASE][i],
+                    refund: receiptList[FIELD_REFUND][i]
+                };
+                receiptStructs.push(receipt);
+            }
+
+            console.log("receiptStructs : ", receiptStructs);
+
+            //buyer1 get receiptList
+            const buyer1ReceiptList = await tokenDistributor.getBuyerReceipt.call(buyer1)
+            const buyer1NumReceipt = buyer1ReceiptList[0].length;
+
+            const FIELD_BUYER_PRODUCT  = 0;
+            const FIELD_BUYER_AMOUNT = 1;
+            const FIELD_BUYER_ETHERAMOUNT = 2;
+            const FIELD_BUYER_RELEASE = 3;
+            const FIELD_BUYER_REFUND = 4;
+
+            let buyer1ReceiptStructs = [];
+            for (let i = 0; i < buyer1NumReceipt; i++) {
+                const buyer1Receipt = {
+                    product:  buyer1ReceiptList[FIELD_BUYER_PRODUCT][i],
+                    amount: buyer1ReceiptList[FIELD_BUYER_AMOUNT][i].toNumber(),
+                    etherAmount: buyer1ReceiptList[FIELD_BUYER_ETHERAMOUNT][i].toNumber(),
+                    release: buyer1ReceiptList[FIELD_BUYER_RELEASE][i],
+                    refund: buyer1ReceiptList[FIELD_BUYER_REFUND][i]
+                }
+                buyer1ReceiptStructs.push(buyer1Receipt);
+            }
+
+            console.log("buyer1ReceiptStructs : ", buyer1ReceiptStructs);
         });
     });
 });
