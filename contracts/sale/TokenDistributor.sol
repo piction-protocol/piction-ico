@@ -134,10 +134,6 @@ contract TokenDistributor is ExtendsOwnable {
         onlyOwner
         returns(address[], address[], uint256[], uint256[], uint256[], bool[], bool[])
     {
-        require(purchasedList.length > 1);
-
-        uint256 receiptIndex = 0;
-
         address[] memory product = new address[](purchasedList.length.sub(1));
         address[] memory buyer = new address[](purchasedList.length.sub(1));
         uint256[] memory id = new uint256[](purchasedList.length.sub(1));
@@ -146,6 +142,7 @@ contract TokenDistributor is ExtendsOwnable {
         bool[] memory release = new bool[](purchasedList.length.sub(1));
         bool[] memory refund = new bool[](purchasedList.length.sub(1));
 
+        uint256 receiptIndex = 0;
         for(uint i=1; i < purchasedList.length; i++) {
             product[receiptIndex] = purchasedList[i].product;
             buyer[receiptIndex] = purchasedList[i].buyer;
@@ -167,8 +164,6 @@ contract TokenDistributor is ExtendsOwnable {
         validAddress(_buyer)
         returns(address[], uint256[], uint256[], bool[], bool[])
     {
-        require(purchasedList.length > 1);
-
         uint256 count = 0;
         for(uint i=1; i < purchasedList.length; i++) {
             if (purchasedList[i].buyer == _buyer) {
@@ -176,16 +171,13 @@ contract TokenDistributor is ExtendsOwnable {
             }
         }
 
-        require(count > 0);
-
-        uint256 receiptIndex = 0;
-
         address[] memory product = new address[](count);
         uint256[] memory amount = new uint256[](count);
         uint256[] memory etherAmount = new uint256[](count);
         bool[] memory release = new bool[](count);
         bool[] memory refund = new bool[](count);
 
+        uint256 receiptIndex = 0;
         for(i = 1; i < purchasedList.length; i++) {
             if (purchasedList[i].buyer == _buyer) {
                 product[receiptIndex] = purchasedList[i].product;
