@@ -128,6 +128,74 @@ contract TokenDistributor is ExtendsOwnable {
         return 0;
     }
 
+    function getAllReceipt()
+        external
+        view
+        onlyOwner
+        returns(address[], address[], uint256[], uint256[], uint256[], bool[], bool[])
+    {
+        address[] memory product = new address[](purchasedList.length.sub(1));
+        address[] memory buyer = new address[](purchasedList.length.sub(1));
+        uint256[] memory id = new uint256[](purchasedList.length.sub(1));
+        uint256[] memory amount = new uint256[](purchasedList.length.sub(1));
+        uint256[] memory etherAmount = new uint256[](purchasedList.length.sub(1));
+        bool[] memory release = new bool[](purchasedList.length.sub(1));
+        bool[] memory refund = new bool[](purchasedList.length.sub(1));
+
+        uint256 receiptIndex = 0;
+        for(uint i=1; i < purchasedList.length; i++) {
+            product[receiptIndex] = purchasedList[i].product;
+            buyer[receiptIndex] = purchasedList[i].buyer;
+            id[receiptIndex] = purchasedList[i].id;
+            amount[receiptIndex] = purchasedList[i].amount;
+            etherAmount[receiptIndex] = purchasedList[i].etherAmount;
+            release[receiptIndex] = purchasedList[i].release;
+            refund[receiptIndex] = purchasedList[i].refund;
+
+            receiptIndex = receiptIndex.add(1);
+        }
+        return (product, buyer, id, amount, etherAmount, release, refund);
+
+    }
+
+    function getBuyerReceipt(address _buyer)
+        external
+        view
+        validAddress(_buyer)
+        returns(address[], uint256[], uint256[], bool[], bool[])
+    {
+        uint256 count = 0;
+        for(uint i=1; i < purchasedList.length; i++) {
+            if (purchasedList[i].buyer == _buyer) {
+                count = count.add(1);
+            }
+        }
+
+        address[] memory product = new address[](count);
+        uint256[] memory amount = new uint256[](count);
+        uint256[] memory etherAmount = new uint256[](count);
+        bool[] memory release = new bool[](count);
+        bool[] memory refund = new bool[](count);
+
+        if (count == 0) {
+            return (product, amount, etherAmount, release, refund);
+        }
+
+        uint256 receiptIndex = 0;
+        for(i = 1; i < purchasedList.length; i++) {
+            if (purchasedList[i].buyer == _buyer) {
+                product[receiptIndex] = purchasedList[i].product;
+                amount[receiptIndex] = purchasedList[i].amount;
+                etherAmount[receiptIndex] = purchasedList[i].etherAmount;
+                release[receiptIndex] = purchasedList[i].release;
+                refund[receiptIndex] = purchasedList[i].refund;
+
+                receiptIndex = receiptIndex.add(1);
+            }
+        }
+        return (product, amount, etherAmount, release, refund);
+    }
+
     function setCriterionTime(uint256 _criterionTime) external onlyOwner {
         require(_criterionTime > 0);
 
