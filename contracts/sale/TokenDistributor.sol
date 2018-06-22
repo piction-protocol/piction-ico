@@ -3,11 +3,13 @@ pragma solidity ^0.4.23;
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "openzeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "contracts/utils/BlockTimeMs.sol";
 import "./Product.sol";
 
 contract TokenDistributor is ExtendsOwnable {
 
     using SafeMath for uint256;
+    using BlockTimeMs for uint256;
     using SafeERC20 for ERC20;
 
     struct Purchased {
@@ -162,7 +164,7 @@ contract TokenDistributor is ExtendsOwnable {
         external
         view
         validAddress(_buyer)
-        returns(address[], uint256[], uint256[], bool[], bool[])
+        returns(address[], uint256[], uint256[], uint256[], bool[], bool[])
     {
         uint256 count = 0;
         for(uint i=1; i < purchasedList.length; i++) {
@@ -172,28 +174,30 @@ contract TokenDistributor is ExtendsOwnable {
         }
 
         address[] memory product = new address[](count);
+        uint256[] memory id = new uint256[](count);
         uint256[] memory amount = new uint256[](count);
         uint256[] memory etherAmount = new uint256[](count);
         bool[] memory release = new bool[](count);
         bool[] memory refund = new bool[](count);
 
         if (count == 0) {
-            return (product, amount, etherAmount, release, refund);
+            return (product, id, amount, etherAmount, release, refund);
         }
 
-        uint256 receiptIndex = 0;
+        count = 0;
         for(i = 1; i < purchasedList.length; i++) {
             if (purchasedList[i].buyer == _buyer) {
-                product[receiptIndex] = purchasedList[i].product;
-                amount[receiptIndex] = purchasedList[i].amount;
-                etherAmount[receiptIndex] = purchasedList[i].etherAmount;
-                release[receiptIndex] = purchasedList[i].release;
-                refund[receiptIndex] = purchasedList[i].refund;
+                product[count] = purchasedList[i].product;
+                id[count] = purchasedList[i].id;
+                amount[count] = purchasedList[i].amount;
+                etherAmount[count] = purchasedList[i].etherAmount;
+                release[count] = purchasedList[i].release;
+                refund[count] = purchasedList[i].refund;
 
-                receiptIndex = receiptIndex.add(1);
+                count = count.add(1);
             }
         }
-        return (product, amount, etherAmount, release, refund);
+        return (product, id, amount, etherAmount, release, refund);
     }
 
     function setCriterionTime(uint256 _criterionTime) external onlyOwner {
@@ -215,7 +219,8 @@ contract TokenDistributor is ExtendsOwnable {
             if (isLive(i) && (purchasedList[i].product == _product)) {
                 if (succeed < _count) {
                     Product product = Product(purchasedList[i].product);
-                    require(block.timestamp >= criterionTime.add(product.lockup() * 1 days));
+                    uint256 oneDay = uint256(1 days).getMs();
+                    require(block.timestamp.getMs() >= criterionTime.add(product.lockup().mul(oneDay)));
                     require(token.balanceOf(address(this)) >= purchasedList[i].amount);
 
                     purchasedList[i].release = true;
@@ -246,7 +251,8 @@ contract TokenDistributor is ExtendsOwnable {
         require(isLive(_index));
 
         Product product = Product(purchasedList[_index].product);
-        require(block.timestamp >= criterionTime.add(product.lockup() * 1 days));
+        uint256 oneDay = uint256(1 days).getMs();
+        require(block.timestamp.getMs() >= criterionTime.add(product.lockup().mul(oneDay)));
         require(token.balanceOf(address(this)) >= purchasedList[_index].amount);
 
         purchasedList[_index].release = true;
