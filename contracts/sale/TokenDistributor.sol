@@ -301,7 +301,9 @@ contract TokenDistributor is ExtendsOwnable {
     }
 
     function isLive(uint256 _index) private view returns(bool){
-        if (!purchasedList[_index].release && !purchasedList[_index].refund) {
+        if (!purchasedList[_index].release
+            && !purchasedList[_index].refund
+            && purchasedList[_index].product != address(0)) {
             return true;
         } else {
             return false;
