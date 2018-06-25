@@ -77,6 +77,10 @@ contract TokenDistributor is ExtendsOwnable {
         emit Receipt(_buyer, _product, index, _amount, _etherAmount, false, false);
     }
 
+    function getTokenAddress() external view returns(address) {
+        return address(token);
+    }
+
     function getAmount(uint256 _index) external view returns(uint256) {
         if (_index == 0) {
             return 0;
