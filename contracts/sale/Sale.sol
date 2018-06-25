@@ -180,6 +180,7 @@ contract Sale is Stateable {
         uint256 refundAmount;
         (isRefund, refundAmount) = tokenDistributor.refund(_id, _product, _buyer);
 
+        require(msg.value == refundAmount);
         require(isRefund && refundAmount > 0);
 
         _buyer.transfer(refundAmount);
