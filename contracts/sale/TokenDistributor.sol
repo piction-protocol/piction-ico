@@ -50,7 +50,7 @@ contract TokenDistributor is ExtendsOwnable {
         uint256 remainder
     );
 
-    event BuyerAddressTransfer(uint256 _id, address _from, address _to);
+    event BuyerAddressTransfer(uint256 _id, address _from, address _to, uint256 _etherAmount);
 
     event WithdrawToken(address to, uint256 amount);
 
@@ -63,7 +63,7 @@ contract TokenDistributor is ExtendsOwnable {
         purchasedList.push(Purchased(0, 0, 0, 0, 0, true, true));
     }
 
-    function setPurchased(address _buyer, address _product, uint256 _amount, uint256 _etherAmount)
+    function addPurchased(address _buyer, address _product, uint256 _amount, uint256 _etherAmount)
         external
         onlyOwner
         validAddress(_buyer)
@@ -75,24 +75,6 @@ contract TokenDistributor is ExtendsOwnable {
         return index;
 
         emit Receipt(_buyer, _product, index, _amount, _etherAmount, false, false);
-    }
-
-    function addPurchased(uint256 _index, uint256 _amount, uint256 _etherAmount) external onlyOwner {
-        require(_index != 0);
-
-        if (isLive(_index)) {
-            purchasedList[_index].amount = purchasedList[_index].amount.add(_amount);
-            purchasedList[_index].etherAmount = purchasedList[_index].etherAmount.add(_etherAmount);
-
-            emit Receipt(
-                purchasedList[_index].buyer,
-                purchasedList[_index].product,
-                purchasedList[_index].id,
-                _amount,
-                _etherAmount,
-                false,
-                false);
-        }
     }
 
     function getAmount(uint256 _index) external view returns(uint256) {
@@ -117,17 +99,6 @@ contract TokenDistributor is ExtendsOwnable {
         } else {
             return purchasedList[_index].etherAmount;
         }
-    }
-
-    function getId(address _buyer, address _product) external view returns (uint256) {
-        for(uint i=1; i < purchasedList.length; i++) {
-            if (purchasedList[i].product == _product
-                && purchasedList[i].buyer == _buyer
-                && !purchasedList[i].refund) {
-                return purchasedList[i].id;
-            }
-        }
-        return 0;
     }
 
     function getAllReceipt()
@@ -268,8 +239,16 @@ contract TokenDistributor is ExtendsOwnable {
             purchasedList[_index].refund);
     }
 
-    function refund(uint _index) external onlyOwner returns (bool, uint256) {
-        if (isLive(_index)) {
+    function refund(uint _index, address _product, address _buyer)
+        external
+        onlyOwner
+        returns (bool, uint256)
+    {
+        if (isLive(_index)
+            && purchasedList[_index].product == _product
+            && purchasedList[_index].buyer == _buyer)
+        {
+
             purchasedList[_index].refund = true;
 
             emit Receipt(
@@ -290,14 +269,16 @@ contract TokenDistributor is ExtendsOwnable {
     function buyerAddressTransfer(uint256 _index, address _from, address _to)
         external
         onlyOwner
-        returns (bool)
+        returns (bool, uint256)
     {
+        require(isLive(_index));
+
         if (purchasedList[_index].buyer == _from) {
             purchasedList[_index].buyer = _to;
-            emit BuyerAddressTransfer(_index, _from, _to);
-            return true;
+            emit BuyerAddressTransfer(_index, _from, _to, purchasedList[_index].etherAmount);
+            return (true, purchasedList[_index].etherAmount);
         } else {
-            return false;
+            return (false, 0);
         }
     }
 
