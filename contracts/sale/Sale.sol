@@ -213,11 +213,8 @@ contract Sale is Stateable {
 
         buyers[_product][_from] = buyers[_product][_from].sub(transferAmount);
         buyers[_product][_to] = buyers[_product][_to].add(transferAmount);
-
-        emit BuyerAddressTransfer(_from, _to, transferAmount);
     }
 
     event Purchase(address indexed _buyer, uint256 _purchased, uint256 _refund, uint256 _tokens);
     event ChangeExternalAddress(address _addr, string _name);
-    event BuyerAddressTransfer(address indexed _from, address indexed _to, uint256 _amount);
 }
