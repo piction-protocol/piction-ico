@@ -192,7 +192,7 @@ contract Sale is Stateable {
         }
     }
 
-    function buyerAddressTransfer(uint _id, address _product, address _from, address _to)
+    function buyerAddressTransfer(uint256 _id, address _product, address _from, address _to)
         external
         onlyOwner
         validAddress(_product)
