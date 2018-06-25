@@ -72,9 +72,9 @@ contract TokenDistributor is ExtendsOwnable {
     {
         index = index.add(1);
         purchasedList.push(Purchased(_buyer, _product, index, _amount, _etherAmount, false, false));
-        return index;
 
         emit Receipt(_buyer, _product, index, _amount, _etherAmount, false, false);
+        return index;
     }
 
     function getTokenAddress() external view returns(address) {
