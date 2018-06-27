@@ -1,26 +1,10 @@
-require('./App');
-
+const Enquirer = require('enquirer');
+const fs = require('fs');
 const input = JSON.parse(fs.readFileSync('build/contracts/Sale.json'));
-const enquirer = new Enquirer();
+const contract = new web3.eth.Contract(input.abi);
+const replace = require('replace-in-file');
 
-if (process.env.SALE_ADDRESS) {
-    log(`SALE_ADDRESS : ${process.env.SALE_ADDRESS}`)
-} else {
-    error('SALE_ADDRESS : Not registered yet!')
-}
-
-const questions = [{
-    type: 'radio',
-    name: 'result',
-    message: 'Which function do you want to run?',
-    choices: ['deploy']
-}];
-enquirer.register('radio', require('prompt-radio'));
-enquirer.ask(questions)
-    .then((answers) => eval(answers.result)())
-    .catch((err) => log(err));
-
-const deploy = async () => {
+module.exports = async () => {
     if (!process.env.WALLET_ADDRESS) {
         error('WALLET_ADDRESS is not registered. Please .env.{network} file update!')
         return;
@@ -41,7 +25,6 @@ const deploy = async () => {
     let answer = await enquirer.prompt(['confirmWalletAddress', 'confirmWhitelistAddress', 'confirmTokenDistributorAddress']);
     if (!answer.confirmWalletAddress || !answer.confirmWhitelistAddress || !answer.confirmTokenDistributorAddress) return;
 
-    let contract = new web3.eth.Contract(input.abi);
     contract.deploy({
         data: input.bytecode,
         arguments: [process.env.WALLET_ADDRESS, process.env.WHITELIST_ADDRESS, process.env.TOKEN_DISTRIBUTOR_ADDRESS]

@@ -1,27 +1,10 @@
-require('./App');
-
+const Enquirer = require('enquirer');
+const fs = require('fs');
 const input = JSON.parse(fs.readFileSync('build/contracts/Whitelist.json'));
-const enquirer = new Enquirer();
+const contract = new web3.eth.Contract(input.abi);
+const replace = require('replace-in-file');
 
-if (process.env.WHITELIST_ADDRESS) {
-    log(`WHITELIST_ADDRESS : ${process.env.WHITELIST_ADDRESS}`)
-} else {
-    error('WHITELIST_ADDRESS : Not registered yet!')
-}
-
-const questions = [{
-    type: 'radio',
-    name: 'result',
-    message: 'Which function do you want to run?',
-    choices: ['deploy']
-}];
-enquirer.register('radio', require('prompt-radio'));
-enquirer.ask(questions)
-    .then((answers) => eval(answers.result)())
-    .catch((err) => log(err));
-
-const deploy = () => {
-    let contract = new web3.eth.Contract(input.abi);
+module.exports = async () => {
     contract.deploy({
         data: input.bytecode,
         arguments: []
@@ -29,6 +12,7 @@ const deploy = () => {
         .send(sendDefaultParams)
         .then(async newContractInstance => {
             log(`WHITELIST ADDRESS : ${newContractInstance.options.address}`);
+            let enquirer = new Enquirer();
             enquirer.register('confirm', require('prompt-confirm'));
             enquirer.question('status', `update ${process.env.NODE_ENV} env`, {type: 'confirm'});
             answer = await enquirer.prompt(['status']);

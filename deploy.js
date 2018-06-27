@@ -1,15 +1,7 @@
 require('dotenv-flow').config({default_node_env: 'ropsten'});
-global.fs = require('fs');
-global.parse = require('csv-parse')
+const colors = require('colors');
+const Enquirer = require('enquirer');
 global.Web3 = require('web3');
-global.BigNumber = require('bignumber.js');
-global.decimals = Math.pow(10, 18);
-global.awaitEach = require('await-each')
-global.chunks = require('array.chunk');
-global.Confirm = require('prompt-confirm');
-global.Enquirer = require('enquirer');
-global.colors = require('colors');
-global.replace = require('replace-in-file');
 global.web3 = new Web3(new Web3.providers.HttpProvider(`https://${process.env.NODE_ENV}.infura.io/`));
 
 global.log = (message) => console.log(colors.green.bold(message));
@@ -29,3 +21,15 @@ global.sendDefaultParams = {
     gas: 4500000,
     gasPrice: '1000000000'
 }
+
+const enquirer = new Enquirer();
+const questions = [{
+    type: 'radio',
+    name: 'result',
+    message: 'Which contract would you like to distribute?',
+    choices: ['PXL', 'Product', 'WhiteList', 'Sale', 'TokenDistributor']
+}];
+enquirer.register('radio', require('prompt-radio'));
+enquirer.ask(questions)
+    .then((answers) => require(`./scripts/${answers.result}.js`)())
+    .catch((err) => log(err));
