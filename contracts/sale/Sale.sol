@@ -169,11 +169,11 @@ contract Sale is Stateable {
 
     function refund(uint256 _id, address _product, address _buyer)
         external
+        onlyOwner
         payable
         validAddress(_product)
         validAddress(_buyer)
     {
-        require(msg.sender == wallet);
         require(_id > 0);
 
         bool isRefund;
