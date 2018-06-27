@@ -1,20 +1,10 @@
-require('./App');
-
+const Enquirer = require('enquirer');
+const fs = require('fs');
 const input = JSON.parse(fs.readFileSync('build/contracts/Product.json'));
+const contract = new web3.eth.Contract(input.abi);
+const replace = require('replace-in-file');
 
-const questions = [{
-    type: 'radio',
-    name: 'result',
-    message: 'Which function do you want to run?',
-    choices: ['deploy']
-}];
-let enquirer = new Enquirer();
-enquirer.register('radio', require('prompt-radio'));
-enquirer.ask(questions)
-    .then((answers) => eval(answers.result)())
-    .catch((err) => log(err));
-
-const deploy = async () => {
+module.exports = async () => {
     let enquirer = new Enquirer();
     enquirer.question('name', 'product name');
     enquirer.question('maxcap', 'maxcap(ETH)');
@@ -31,7 +21,6 @@ const deploy = async () => {
         parseInt(answer.rate) < 0 ||
         parseInt(answer.lockup) < 0) return;
 
-    let contract = new web3.eth.Contract(input.abi);
     contract.deploy({
         data: input.bytecode,
         arguments: [answer.name, ether(answer.maxcap), ether(answer.exceed), ether(answer.minimum), answer.rate, answer.lockup]
