@@ -1,5 +1,5 @@
 {
-  "name": "smart-ico",
+  "name": "piction-ico",
   "version": "0.0.1",
   "description": "This is contract of Pixel token.",
   "main": "truffle.js",
@@ -18,11 +18,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/piction-network/smart-ico.git"
+    "url": "git+https://github.com/piction-network/piction-ico.git"
   },
   "author": "",
   "license": "MIT",
-  "homepage": "https://github.com/piction-network/smart-ico#readme",
+  "homepage": "https://github.com/piction-network/piction-ico#readme",
   "dependencies": {
     "openzeppelin-solidity": "git+https://github.com/OpenZeppelin/openzeppelin-solidity.git"
   },
