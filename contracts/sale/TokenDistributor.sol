@@ -286,9 +286,9 @@ contract TokenDistributor is ExtendsOwnable {
         }
     }
 
-    function withdrawToken(address _owner) external onlyOwner {
-        token.safeTransfer(_owner, token.balanceOf(address(this)));
-        emit WithdrawToken(_owner, token.balanceOf(address(this)));
+    function withdrawToken() external onlyOwner {
+        token.safeTransfer(msg.sender, token.balanceOf(address(this)));
+        emit WithdrawToken(msg.sender, token.balanceOf(address(this)));
     }
 
     function isLive(uint256 _index) private view returns(bool){
