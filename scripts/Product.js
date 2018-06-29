@@ -21,21 +21,19 @@ module.exports = async () => {
         parseInt(answer.rate) < 0 ||
         parseInt(answer.lockup) < 0) return;
 
-    contract.deploy({
+    let instance = await contract.deploy({
         data: input.bytecode,
         arguments: [answer.name, ether(answer.maxcap), ether(answer.exceed), ether(answer.minimum), answer.rate, answer.lockup]
-    })
-        .send(sendDefaultParams)
-        .then(async newContractInstance => {
-            log(`PRODUCT_ADDRESS : ${newContractInstance.options.address}`);
-            enquirer.register('confirm', require('prompt-confirm'));
-            enquirer.question('status', `update ${process.env.NODE_ENV} env`, {type: 'confirm'});
-            answer = await enquirer.prompt(['status']);
-            if (!answer.status) return;
-            replace({
-                files: `.env.${process.env.NODE_ENV}`,
-                from: /PRODUCT_ADDRESS=.*/g,
-                to: `PRODUCT_ADDRESS=${newContractInstance.options.address}`
-            })
-        });
+    }).send(sendDefaultParams);
+
+    process.env.PRODUCT_ADDRESS = instance.options.address;
+    replace({
+        files: `.env.${process.env.NODE_ENV}`,
+        from: /PRODUCT_ADDRESS=.*/g,
+        to: `PRODUCT_ADDRESS=${instance.options.address}`
+    });
+
+    log(`PRODUCT_ADDRESS : ${instance.options.address}`);
+
+    return instance;
 };
