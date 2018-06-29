@@ -26,7 +26,6 @@ module.exports = async () => {
         arguments: [answer.name, ether(answer.maxcap), ether(answer.exceed), ether(answer.minimum), answer.rate, answer.lockup]
     }).send(sendDefaultParams);
 
-    process.env.PRODUCT_ADDRESS = instance.options.address;
     replace({
         files: `.env.${process.env.NODE_ENV}`,
         from: /PRODUCT_ADDRESS=.*/g,

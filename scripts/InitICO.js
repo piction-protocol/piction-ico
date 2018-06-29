@@ -21,13 +21,13 @@ module.exports = async () => {
     let tokenDistributor = await TokenDistributor(pxl.options.address);
     console.log('▶▶▶▶▶ Deploy Sale contract ◀◀◀◀◀');
     let sale = await Sale(answer.wallet, whiteList.options.address, tokenDistributor.options.address);
+    console.log('▶▶▶▶▶ Deploy Product contract ◀◀◀◀◀');
+    let product = await Product();
     console.log('▶▶▶▶▶ TokenDistributor.addOwner(sale) ◀◀◀◀◀');
     let receipt = await tokenDistributor.methods
         .addOwner(sale.options.address)
         .send(sendDefaultParams);
     log(`hash : ${receipt.transactionHash}`);
-    console.log('▶▶▶▶▶ Deploy Product contract ◀◀◀◀◀');
-    let product = await Product();
 
     log('=========== ADDRESS INFO ===========')
     log(`PXL : ${pxl.options.address}`)
