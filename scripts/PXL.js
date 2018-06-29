@@ -17,7 +17,7 @@ module.exports = async (initialSupply) => {
         to: `PXL_ADDRESS=${instance.options.address}`
     });
 
-    log(`PXL ADDRESS : ${instance.options.address}`);
+    console.log(instance.options.address);
 
     return instance;
 };

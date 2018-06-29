@@ -15,7 +15,7 @@ module.exports = async (wallet, whitelist, tokenDistributor) => {
         to: `SALE_ADDRESS=${instance.options.address}`
     });
 
-    log(`SALE ADDRESS : ${instance.options.address}`);
+    console.log(instance.options.address);
 
     return instance;
 };
