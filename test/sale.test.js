@@ -106,51 +106,32 @@ contract("SALE", function (accounts) {
         describe("purchased test", () => {
             it("unregisted owner - setPurchased", async () => {
                 await tokenDistributor
-                    .setPurchased(buyersPrivateSale[0], privateProduct90.address, ether(1000), ether(1), {from: unregistedOwner})
-                    .should.be.rejected;
-            });
-
-            it("owner - setPurchased", async () => {
-                await tokenDistributor
-                    .setPurchased(buyersPrivateSale[0], privateProduct90.address, ether(1000), ether(1), {from: owner})
-                    .should.be.fulfilled;
-
-                await tokenDistributor
-                    .setPurchased(buyersPrivateSale[1], privateProduct60.address, ether(2000), ether(2), {from: owner})
-                    .should.be.fulfilled;
-
-                await tokenDistributor
-                    .setPurchased(buyersPrivateSale[2], privateProduct30.address, ether(3000), ether(3), {from: owner})
-                    .should.be.fulfilled;
-
-                await tokenDistributor
-                    .setPurchased(buyersPrivateSale[3], privateProduct90.address, ether(3000), ether(3), {from: owner})
-                    .should.be.fulfilled;
-
-                var list = await tokenDistributor.getAllReceipt.call({from: owner})
-                    list[0].length.should.be.equal(4);
-            });
-
-            it("unregisted owner - addPurchased", async () => {
-                var index = await tokenDistributor.getId.call(buyersPrivateSale[2], privateProduct30.address);
-
-                await tokenDistributor
-                    .addPurchased(index, ether(1000), ether(1), {from: unregistedOwner})
+                    .addPurchased(buyersPrivateSale[0], privateProduct90.address, ether(1000), ether(1), {from: unregistedOwner})
                     .should.be.rejected;
             });
 
             it("owner - addPurchased", async () => {
-                var index = await tokenDistributor.getId.call(buyersPrivateSale[2], privateProduct30.address);
-
                 await tokenDistributor
-                    .addPurchased(index, ether(1000), ether(1), {from: owner})
+                    .addPurchased(buyersPrivateSale[0], privateProduct90.address, ether(1000), ether(1), {from: owner})
                     .should.be.fulfilled;
 
-                var tokenAmount = await tokenDistributor.getAmount.call(index);
-                    tokenAmount.should.be.bignumber.equal(ether(4000));
+                await tokenDistributor
+                    .addPurchased(buyersPrivateSale[1], privateProduct60.address, ether(2000), ether(2), {from: owner})
+                    .should.be.fulfilled;
 
-                var etherAmount = await tokenDistributor.getEtherAmount.call(index);
-                    etherAmount.should.be.bignumber.equal(ether(4));
+                await tokenDistributor
+                    .addPurchased(buyersPrivateSale[2], privateProduct30.address, ether(3000), ether(3), {from: owner})
+                    .should.be.fulfilled;
+
+                await tokenDistributor
+                    .addPurchased(buyersPrivateSale[3], privateProduct90.address, ether(3000), ether(3), {from: owner})
+                    .should.be.fulfilled;
+
+                await tokenDistributor
+                    .addPurchased(buyersPrivateSale[2], privateProduct30.address, ether(1000), ether(1), {from: owner})
+                    .should.be.fulfilled;
+                var list = await tokenDistributor.getAllReceipt.call({from: owner})
+                    list[0].length.should.be.equal(5);
             });
         });
 
@@ -212,15 +193,13 @@ contract("SALE", function (accounts) {
             });
 
             it("buyerAddressTransfer test", async () => {
-                var index = await tokenDistributor.getId.call(buyersPrivateSale[0], privateProduct90.address);
-
-                await tokenDistributor.buyerAddressTransfer(index, buyersPrivateSale[0], buyersPrivateSale[4], {from: unregistedOwner})
+                await tokenDistributor.buyerAddressTransfer(1, buyersPrivateSale[0], buyersPrivateSale[4], {from: unregistedOwner})
                     .should.be.rejected;
 
                 await tokenDistributor.buyerAddressTransfer(999, buyersPrivateSale[0], buyersPrivateSale[4], {from: owner})
                     .should.be.rejected;
 
-                await tokenDistributor.buyerAddressTransfer(index, buyersPrivateSale[0], buyersPrivateSale[4], {from: owner})
+                await tokenDistributor.buyerAddressTransfer(1, buyersPrivateSale[0], buyersPrivateSale[4], {from: owner})
                     .should.be.fulfilled;
             });
 
@@ -229,7 +208,6 @@ contract("SALE", function (accounts) {
                     .should.be.fulfilled;
             });
         });
-
     });
 
     describe("pre sale", () => {
@@ -293,12 +271,6 @@ contract("SALE", function (accounts) {
                 catch(error) {
                     console.log("error: ", error);
                 }
-
-                const id = await tokenDistributor.getId.call(buyersPreSale[0], preProduct10.address);
-                console.log("id: ", id);
-
-                const amountById = await tokenDistributor.getAmount.call(id);
-                console.log("amountById: ", amountById);
 
                 try { await web3.eth.sendTransaction({ to: sale.address, value: ether(3), from: buyersPreSale[1], gas: gas }); }
                 catch(error) {
