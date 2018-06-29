@@ -32,7 +32,7 @@ module.exports = async () => {
         to: `PRODUCT_ADDRESS=${instance.options.address}`
     });
 
-    log(`PRODUCT_ADDRESS : ${instance.options.address}`);
+    console.log(instance.options.address);
 
     return instance;
 };

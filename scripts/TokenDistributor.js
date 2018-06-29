@@ -17,7 +17,7 @@ module.exports = async (pxlAddress) => {
         to: `TOKEN_DISTRIBUTOR_ADDRESS=${instance.options.address}`
     });
 
-    log(`TOKEN_DISTRIBUTOR_ADDRESS : ${instance.options.address}`);
+    console.log(instance.options.address);
 
     return instance;
 };

@@ -1,4 +1,3 @@
-const Enquirer = require('enquirer');
 const fs = require('fs');
 const input = JSON.parse(fs.readFileSync('build/contracts/Whitelist.json'));
 const contract = new web3.eth.Contract(input.abi);
@@ -17,7 +16,7 @@ module.exports = async () => {
         to: `WHITELIST_ADDRESS=${instance.options.address}`
     });
 
-    log(`WHITELIST ADDRESS : ${instance.options.address}`);
+    console.log(instance.options.address);
 
     return instance;
 };
