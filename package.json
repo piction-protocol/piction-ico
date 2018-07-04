@@ -18,11 +18,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/piction-network/piction-ico.git"
+    "url": "git+https://github.com/piction-protocol/piction-ico.git"
   },
   "author": "",
   "license": "MIT",
-  "homepage": "https://github.com/piction-network/piction-ico#readme",
+  "homepage": "https://github.com/piction-protocol/piction-ico#readme",
   "dependencies": {
     "openzeppelin-solidity": "git+https://github.com/OpenZeppelin/openzeppelin-solidity.git"
   },
