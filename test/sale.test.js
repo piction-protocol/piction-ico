@@ -48,7 +48,7 @@ contract("SALE", function (accounts) {
         token = await Pxl.new(initialBalance, {from: owner});
 
         //TokenDistributor Create
-        tokenDistributor = await TokenDistributor.new(token.address, {from: owner});
+        tokenDistributor = await TokenDistributor.new({from: owner});
 
         //Whitelist Create
         whitelist = await Whitelist.new({from: owner});
@@ -58,6 +58,9 @@ contract("SALE", function (accounts) {
 
         //Add Owner
         await tokenDistributor.addOwner(sale.address, {from: owner});
+
+        //Set Token
+        await tokenDistributor.setToken(token.address, {from: owner});
 
         //Token Transfer : send to tokenDistributor
         await token.transfer(tokenDistributor.address, tokenDistributorBalance, {from: owner});
@@ -104,7 +107,7 @@ contract("SALE", function (accounts) {
         });
 
         describe("purchased test", () => {
-            it("unregisted owner - setPurchased", async () => {
+            it("unregisted owner - addPurchased", async () => {
                 await tokenDistributor
                     .addPurchased(buyersPrivateSale[0], privateProduct90.address, ether(1000), ether(1), {from: unregistedOwner})
                     .should.be.rejected;

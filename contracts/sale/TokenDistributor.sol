@@ -55,13 +55,16 @@ contract TokenDistributor is ExtendsOwnable {
 
     event WithdrawToken(address to, uint256 amount);
 
-    constructor(address _token) public {
-        token = ERC20(_token);
+    constructor() public {
         index = 0;
         criterionTime = 0;
 
         //for error check
         purchasedList.push(Purchased(0, 0, 0, 0, 0, true, true));
+    }
+
+    function setToken(address _token) external onlyOwner validAddress(_token) {
+        token = ERC20(_token);
     }
 
     function addPurchased(address _buyer, address _product, uint256 _amount, uint256 _etherAmount)
@@ -187,6 +190,7 @@ contract TokenDistributor is ExtendsOwnable {
         onlyOwner
     {
         require(criterionTime != 0);
+        require(address(token) != address(0));
 
         uint256 succeed = 0;
         uint256 remainder = 0;
@@ -225,6 +229,7 @@ contract TokenDistributor is ExtendsOwnable {
         require(_index != 0);
         require(criterionTime != 0);
         require(isLive(_index));
+        require(address(token) != address(0));
 
         Product product = Product(purchasedList[_index].product);
         uint256 oneDay = uint256(1 days).getMs();
@@ -288,6 +293,7 @@ contract TokenDistributor is ExtendsOwnable {
     }
 
     function withdrawToken() external onlyOwner {
+        require(address(token) != address(0));
         token.safeTransfer(msg.sender, token.balanceOf(address(this)));
         emit WithdrawToken(msg.sender, token.balanceOf(address(this)));
     }

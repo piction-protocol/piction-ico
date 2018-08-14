@@ -64,7 +64,7 @@ module.exports = async () => {
     let whiteList = await WhiteList();
 
     console.log(colors.red.bold('> Deploy TokenDistributor contract'));
-    let tokenDistributor = await TokenDistributor(pxl.options.address);
+    let tokenDistributor = await TokenDistributor();
 
     console.log(colors.red.bold('> Deploy Sale contract'));
     let sale = await Sale(process.env.COLD_WALLET_ADDRESS, whiteList.options.address, tokenDistributor.options.address);
@@ -72,6 +72,13 @@ module.exports = async () => {
     console.log(colors.red.bold('> TokenDistributor.addOwner(sale)'));
     let receipt = await tokenDistributor.methods
         .addOwner(sale.options.address)
+        .send(sendDefaultParams);
+    console.log(`${receipt.transactionHash}`);
+
+    //PXL이 이후에 발행 된다면 수정 필요
+    console.log(colors.red.bold('> TokenDistributor.setToken(pxl.options.address)'));
+    let receipt = await tokenDistributor.methods
+        .setToken(pxl.options.address)
         .send(sendDefaultParams);
     console.log(`${receipt.transactionHash}`);
 
