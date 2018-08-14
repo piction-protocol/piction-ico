@@ -51,9 +51,10 @@ contract("TOKENDISTRIBUTOR", function (accounts) {
             productRate,
             productLockup,
             {from: owner});
-        tokenDistributor = await TokenDistributor.new(token.address, {from: owner});
+        tokenDistributor = await TokenDistributor.new({from: owner});
 
         await tokenDistributor.addOwner(secondOwner, {from: owner});
+        await tokenDistributor.setToken(token.address, {from: owner});
         await token.transfer(tokenDistributor.address, tokenDistributorBalance, {from: owner});
     });
 
@@ -69,9 +70,8 @@ contract("TOKENDISTRIBUTOR", function (accounts) {
     describe("addPurchased", () => {
         it("Insert", async () => {
             const insertToken = 1000;
-            await tokenDistributor.setPurchased(buyer1, product.address, insertToken, {from: secondOwner});
-            const amount = await tokenDistributor.getAmountFromBuyer.call(buyer1, product.address);
-            amount.should.be.bignumber.equal(insertToken);
+            await tokenDistributor.addPurchased(buyer1, product.address, insertToken, insertToken, {from: secondOwner})
+            .should.be.fulfilled;
         });
     });
 
