@@ -1,11 +1,11 @@
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/access/Whitelist.sol";
 
-import "./TokenDistributor.sol";
-import "../utils/Stateable.sol";
+import "contracts/sale/TokenDistributor.sol";
+import "contracts/utils/Stateable.sol";
 
 contract Sale is Stateable {
     using SafeMath for uint256;
