@@ -1,3 +1,7 @@
+/**
+* this contract is deprecated.
+*/
+
 pragma solidity ^0.4.24;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
