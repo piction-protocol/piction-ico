@@ -135,7 +135,7 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
     }
 
     function getLockup(address _account) public view returns (uint256) {
-        return lockup(_account);
+        return lockup[_account];
     }
 
     event Mint(address indexed _to, uint256 _amount);
