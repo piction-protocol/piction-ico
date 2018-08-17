@@ -28,7 +28,7 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
     /**
      * @dev PXL constrcutor
      *
-     * @param initialSupply Initial PXL token supply to issue.
+     * @param _initialSupply Initial PXL token supply to issue.
      */
     constructor(uint256 _initialSupply) public {
         require(_initialSupply > 0);
@@ -113,7 +113,7 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
     function burn(uint256 _amount) onlyOwner external {
         super._burn(msg.sender, _amount);
 
-        Burn(msg.sender, _amount);
+        emit Burn(msg.sender, _amount);
     }
 
     function isContract(address _addr) private view returns (bool) {
