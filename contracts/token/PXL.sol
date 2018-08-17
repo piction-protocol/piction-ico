@@ -16,14 +16,14 @@ import "contracts/utils/ExtendsOwnable.sol";
 contract PXL is StandardToken, CustomToken, ExtendsOwnable {
     using SafeMath for uint256;
 
+    mapping (address => uint256) private lockup;
+
     // Token basic information
     string public constant name = "Pixel";
     string public constant symbol = "PXL";
     uint256 public constant decimals = 18;
 
-    // Token is non-transferable until owner calls unlock()
-    // (to prevent OTC before the token to be listed on exchanges)
-    bool isTransferable = false;
+    uint256 private transferableTime = 0;
 
     /**
      * @dev PXL constrcutor
@@ -41,18 +41,22 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
         revert();
     }
 
-    /**
-     * @dev unlock PXL transfer
-     *
-     * @notice token contract is initially locked.
-     * @notice contract owner should unlock to enable transaction.
-     */
-    function unlock() external onlyOwner {
-        isTransferable = true;
+    function isTransferable(address _account) public view returns (bool) {
+        if(transferableTime > 0) {
+            return (transferableTime.add(lockup[_account]) < block.timestamp);
+        } else {
+            return false;
+        }
     }
 
-    function getTokenTransferable() external view returns (bool) {
-        return isTransferable;
+    function setTransferableTime() external onlyOwner {
+        require(transferableTime == 0);
+
+        transferableTime = block.timestamp;
+    }
+
+    function getTransferableTime() external view returns (uint256) {
+        return transferableTime;
     }
 
     /**
@@ -65,7 +69,7 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
      * @return A boolean that indicates if transfer was successful.
      */
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-        require(isTransferable || owners[msg.sender]);
+        require(isTransferable(msg.sender) || owners[msg.sender]);
         return super.transferFrom(_from, _to, _value);
     }
 
@@ -78,12 +82,17 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
      * @return A boolean that indicates if transfer was successful.
      */
     function transfer(address _to, uint256 _value) public returns (bool) {
-        require(isTransferable || owners[msg.sender]);
+        require(isTransferable(msg.sender) || owners[msg.sender]);
+        return super.transfer(_to, _value);
+    }
+
+    function transferLockup(address _to, uint256 _value, uint256 _days) public onlyOwner returns (bool) {
+        lockup[_to] = _days * 1 days;
+
         return super.transfer(_to, _value);
     }
 
     function approveAndCall(address _to, uint256 _value, bytes _data) public returns (bool) {
-        require(isTransferable || owners[msg.sender]);
         require(_to != address(0) && _to != address(this));
         require(balanceOf(msg.sender) >= _value);
 
@@ -123,6 +132,10 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
         length := extcodesize(_addr)
         }
         return (length > 0);
+    }
+
+    function getLockup(address _account) public view returns (uint256) {
+        return lockup(_account);
     }
 
     event Mint(address indexed _to, uint256 _amount);
