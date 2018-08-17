@@ -20,7 +20,6 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
     string public constant name = "Pixel";
     string public constant symbol = "PXL";
     uint256 public constant decimals = 18;
-    uint256 public totalSupply;
 
     // Token is non-transferable until owner calls unlock()
     // (to prevent OTC before the token to be listed on exchanges)
@@ -31,13 +30,11 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
      *
      * @param initialSupply Initial PXL token supply to issue.
      */
-    constructor(uint256 initialSupply) public {
-        require(initialSupply > 0);
+    constructor(uint256 _initialSupply) public {
+        require(_initialSupply > 0);
 
-        totalSupply = initialSupply;
-        balances[msg.sender] = totalSupply;
-
-        emit Transfer(address(0), msg.sender, initialSupply);
+        super._mint(msg.sender, _initialSupply);
+        emit Mint(msg.sender, _initialSupply);
     }
 
     function() public payable {
@@ -88,7 +85,7 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
     function approveAndCall(address _to, uint256 _value, bytes _data) public returns (bool) {
         require(isTransferable || owners[msg.sender]);
         require(_to != address(0) && _to != address(this));
-        require(balances[msg.sender] >= _value);
+        require(balanceOf(msg.sender) >= _value);
 
         if(approve(_to, _value) && isContract(_to)) {
             ContractReceiver receiver = ContractReceiver(_to);
@@ -102,30 +99,23 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
     /**
      * @dev Function to mint tokens
      * @param _amount The amount of tokens to mint.
-     * @return A boolean that indicates if the operation was successful.
      */
-    function mint(uint256 _amount) onlyOwner public returns (bool) {
-        totalSupply = totalSupply.add(_amount);
-        balances[msg.sender] = balances[msg.sender].add(_amount);
+     function mint(uint256 _amount) onlyOwner external {
+        super._mint(msg.sender, _amount);
 
         emit Mint(msg.sender, _amount);
-        emit Transfer(address(0), msg.sender, _amount);
-        return true;
     }
 
     /**
      * @dev Burns a specific amount of tokens.
      * @param _amount The amount of token to be burned.
      */
-    function burn(uint256 _amount) onlyOwner public {
-        require(_amount <= balances[msg.sender]);
+    function burn(uint256 _amount) onlyOwner external {
+        super._burn(msg.sender, _amount);
 
-        totalSupply = totalSupply.sub(_amount);
-        balances[msg.sender] = balances[msg.sender].sub(_amount);
-
-        emit Burn(msg.sender, _amount);
+        Burn(msg.sender, _amount);
     }
-    
+
     function isContract(address _addr) private view returns (bool) {
         uint256 length;
         assembly {
