@@ -144,8 +144,14 @@ contract('PXL', function(accounts) {
     });
 
     it ("check lockup", async () => {
+        await token.approve(userOne, userSendPXL, {from: userThree, gasPrice: 1000000000}).should.be.fulfilled;
+        await token.transferFrom(userThree, userTwo, userSendPXL, {from: userOne, gasPrice: 1000000000}).should.be.rejected;
+
         await token.transfer(userOne, userSendPXL, {from: userThree, gasPrice: 1000000000}).should.be.rejected;
+
         await timer(11000);
+
+        await token.transferFrom(userThree, userTwo, userSendPXL, {from: userOne, gasPrice: 1000000000}).should.be.fulfilled;
         await token.transfer(userOne, userSendPXL, {from: userThree, gasPrice: 1000000000}).should.be.fulfilled;
     });
 
