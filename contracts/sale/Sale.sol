@@ -153,7 +153,7 @@ contract Sale is Stateable {
     {
         uint256 d1 = product.maxcap().sub(weiRaised[_product]);
         uint256 d2 = product.exceed().sub(_raisedAmount);
-        uint256 possibleAmount = (d1.min256(d2)).min256(_amount);
+        uint256 possibleAmount = (d1.min(d2)).min(_amount);
 
         return (possibleAmount, _amount.sub(possibleAmount));
     }
