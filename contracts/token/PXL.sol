@@ -28,13 +28,12 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
     /**
      * @dev PXL constrcutor
      *
-     * @param _initialSupply Initial PXL token supply to issue.
+     * @param _address Transfer ownership address
      */
-    constructor(uint256 _initialSupply) public {
-        require(_initialSupply > 0);
+    constructor(uint256 _address) public {
+        require(_address != address(0));
 
-        super._mint(msg.sender, _initialSupply);
-        emit Mint(msg.sender, _initialSupply);
+        transferOwnership(_address);
     }
 
     function() public payable {
