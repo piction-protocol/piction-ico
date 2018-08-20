@@ -180,6 +180,18 @@ contract('PXL', function(accounts) {
 
         await token.transferFrom(userThree, userTwo, userSendPXL, {from: userOne, gasPrice: 1000000000}).should.be.fulfilled;
         await token.transfer(userOne, userSendPXL, {from: userThree, gasPrice: 1000000000}).should.be.fulfilled;
+
+        await token.setLockup(userThree, 30, {from: owner, gasPrice: 1000000000}).should.be.fulfilled;
+
+        await token.approve(userOne, userSendPXL, {from: userThree, gasPrice: 1000000000}).should.be.fulfilled;
+        await token.transferFrom(userThree, userTwo, userSendPXL, {from: userOne, gasPrice: 1000000000}).should.be.rejected;
+
+        await token.transfer(userOne, userSendPXL, {from: userThree, gasPrice: 1000000000}).should.be.rejected;
+
+        await timer(20000);
+
+        await token.transferFrom(userThree, userTwo, userSendPXL, {from: userOne, gasPrice: 1000000000}).should.be.fulfilled;
+        await token.transfer(userOne, userSendPXL, {from: userThree, gasPrice: 1000000000}).should.be.fulfilled;
     });
 
 });
