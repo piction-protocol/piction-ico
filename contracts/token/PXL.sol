@@ -86,6 +86,8 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
     }
 
     function transferLockup(address _to, uint256 _value, uint256 _days) public onlyOwner returns (bool) {
+        require(lockup[_to] == 0);
+        
         lockup[_to] = _days * 1 days;
 
         return super.transfer(_to, _value);
