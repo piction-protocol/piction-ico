@@ -43,7 +43,7 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
     }
 
     /**
-     * @dev 토큰 전송 가능 여부 확인 함수 
+     * @dev 토큰 전송 가능 여부 확인 함수
      *
      * @notice 상장이전 토큰 전송 불가
      * @notice 토큰 세일 참여자 별 별도의 락업 기간을 확인
@@ -115,7 +115,7 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
      * @param _value 토큰 구매 수량
      * @return bool 타입의 토큰 구매 결과
      */
-    function transferLockup(address _to, uint256 _value, uint256 _days) public onlyOwner returns (bool) {
+    function transferAndLockup(address _to, uint256 _value, uint256 _days) public onlyOwner returns (bool) {
         require(lockup[_to] == 0);
 
         setLockup(_to, _days);
@@ -172,8 +172,8 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
     function isContract(address _addr) private view returns (bool) {
         uint256 length;
         assembly {
-        //retrieve the size of the code on target address, this needs assembly
-        length := extcodesize(_addr)
+            //retrieve the size of the code on target address, this needs assembly
+            length := extcodesize(_addr)
         }
         return (length > 0);
     }
