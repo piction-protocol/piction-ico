@@ -30,7 +30,7 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
      *
      * @param _address Transfer ownership address
      */
-    constructor(uint256 _address) public {
+    constructor(address _address) public {
         require(_address != address(0));
 
         transferOwnership(_address);
@@ -88,8 +88,7 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
     function transferLockup(address _to, uint256 _value, uint256 _days) public onlyOwner returns (bool) {
         require(lockup[_to] == 0);
 
-        lockup[_to] = _days * 1 days;
-
+        setLockup(_to, _days);
         return super.transfer(_to, _value);
     }
 
@@ -139,10 +138,13 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
         return lockup[_account];
     }
 
-    function setLockup(address _address, uint256 _days) external onlyOwner {
+    function setLockup(address _address, uint256 _days) public onlyOwner {
         lockup[_address] = _days * 1 days;
+
+        emit Lockup(_address, _days);
     }
 
     event Mint(address indexed _to, uint256 _amount);
     event Burn(address indexed _from, uint256 _amount);
+    event Lockup(address indexed _account, uint256 _days);
 }
