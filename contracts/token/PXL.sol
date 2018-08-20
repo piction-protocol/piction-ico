@@ -27,17 +27,6 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
     // 상장 시간(초 단위로 설정)
     uint256 private transferableTime = 0;
 
-    /**
-     * @dev PXL 생성자 함수
-     *
-     * @param _address 변경할 오너 주소
-     */
-    constructor(address _address) public {
-        require(_address != address(0));
-
-        transferOwnership(_address);
-    }
-
     function() public payable {
         revert();
     }
