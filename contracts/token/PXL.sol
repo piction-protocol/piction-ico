@@ -68,7 +68,7 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
      * @return A boolean that indicates if transfer was successful.
      */
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-        require(isTransferable(msg.sender) || owners[msg.sender]);
+        require(isTransferable(_from) || owners[msg.sender]);
         return super.transferFrom(_from, _to, _value);
     }
 
