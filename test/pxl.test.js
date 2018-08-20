@@ -37,13 +37,40 @@ contract('PXL', function(accounts) {
         console.log();
         console.log(colors.magenta.bold("\t========== Deploy contract gas usage(1 Gwei) =========="));
 
+        beforeBalance = await web3.eth.getBalance(notOwner);
+
+        token = await Pxl.new({from: notOwner, gasPrice: 1000000000}).should.be.fulfilled;
+
+        afterBalance = await web3.eth.getBalance(notOwner);
+        txFee = beforeBalance - afterBalance;
+        console.log(colors.magenta("\ttoken contract"));
+        console.log(colors.magenta("\tActual Tx Cost/Fee : " + txFee / decimals + " Ether (￦ " + Math.round((txFee / decimals) * won) + ")"));
+        console.log();
+
+        console.log();
+        console.log(colors.magenta.bold("\t========== TransferOwnership gas usage(1 Gwei) =========="));
+
+        beforeBalance = await web3.eth.getBalance(notOwner);
+
+        await token.transferOwnership(owner, {from: notOwner, gasPrice: 1000000000}).should.be.fulfilled;
+
+        afterBalance = await web3.eth.getBalance(notOwner);
+        txFee = beforeBalance - afterBalance;
+        console.log(colors.magenta("\ttransferOwnership"));
+        console.log(colors.magenta("\tActual Tx Cost/Fee : " + txFee / decimals + " Ether (￦ " + Math.round((txFee / decimals) * won) + ")"));
+        console.log();
+
+
+        console.log();
+        console.log(colors.magenta.bold("\t========== Mint gas usage(1 Gwei) =========="));
+
         beforeBalance = await web3.eth.getBalance(owner);
 
-        token = await Pxl.new(initialBalance, {from: owner, gasPrice: 1000000000}).should.be.fulfilled;
+        await token.mint(initialBalance, {from: owner, gasPrice: 1000000000}).should.be.fulfilled;
 
         afterBalance = await web3.eth.getBalance(owner);
         txFee = beforeBalance - afterBalance;
-        console.log(colors.magenta("\ttoken contract"));
+        console.log(colors.magenta("\ttoken mint"));
         console.log(colors.magenta("\tActual Tx Cost/Fee : " + txFee / decimals + " Ether (￦ " + Math.round((txFee / decimals) * won) + ")"));
         console.log();
     });
@@ -106,23 +133,23 @@ contract('PXL', function(accounts) {
 
     /*
     change code
-    function transferLockup(address _to, uint256 _value, uint256 _days) public onlyOwner returns (bool) {
-        lockup[_to] = _days * 1 seconds;
+    function setLockup(address _address, uint256 _days) public onlyOwner {
+        lockup[_address] = _days * 1 seconds;
 
-        return super.transfer(_to, _value);
+        emit Lockup(_address, _days);
     }
     */
 
     it ("send 3000 pixl to userThree and lockup 10 seconds", async () => {
 
-        await token.transferLockup(userThree, sendPXL, 10, {from: notOwner, gasPrice: 1000000000}).should.be.rejected;
+        await token.transferAndLockup(userThree, sendPXL, 10, {from: notOwner, gasPrice: 1000000000}).should.be.rejected;
 
         console.log();
         console.log(colors.magenta.bold("\t========== Token transfer and lockup gas usage(1 Gwei) =========="));
 
         beforeBalance = await web3.eth.getBalance(owner);
 
-        await token.transferLockup(userThree, sendPXL, 10, {from: owner, gasPrice: 1000000000}).should.be.fulfilled;
+        await token.transferAndLockup(userThree, sendPXL, 10, {from: owner, gasPrice: 1000000000}).should.be.fulfilled;
 
         afterBalance = await web3.eth.getBalance(owner);
         txFee = beforeBalance - afterBalance;
