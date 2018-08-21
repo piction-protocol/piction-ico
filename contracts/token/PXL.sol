@@ -16,56 +16,25 @@ import "contracts/utils/ExtendsOwnable.sol";
 contract PXL is StandardToken, CustomToken, ExtendsOwnable {
     using SafeMath for uint256;
 
-    // PXL 세일 참여자 락업 기간 설정 매핑 변수(참여자 주소 => 락업 기간(sec))
-    mapping (address => uint256) private lockup;
-
     // PXL 토큰 기본 정보
     string public constant name = "Pixel";
     string public constant symbol = "PXL";
     uint256 public constant decimals = 18;
 
-    // 상장 시간(초 단위로 설정)
-    uint256 private transferableTime = 0;
+    // PXL 토큰 글로벌 락 변수
+    bool isTransferable = false;
+
+    /**
+     * @dev PXL 글로벌 락 해제
+     *
+     * @notice 거래소 상장 후 락 해제
+     */
+    function unlock() external onlyOwner {
+        isTransferable = true;
+    }
 
     function() public payable {
         revert();
-    }
-
-    /**
-     * @dev 토큰 전송 가능 여부 확인 함수
-     *
-     * @notice 상장이전 토큰 전송 불가
-     * @notice 토큰 세일 참여자 별 별도의 락업 기간을 확인
-     * @param _account 개인 참여자 지갑 주소
-     * @return 토큰 전송 가능 여부 bool 값
-     */
-    function isTransferable(address _account) public view returns (bool) {
-        if(transferableTime > 0) {
-            return (transferableTime.add(lockup[_account]) < block.timestamp);
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * @dev 거래소 상장 시간 등록 함수
-     *
-     * @notice 거래소 상장 시간은 최초 한번만 등록 가능
-     */
-    function setTransferableTime() external onlyOwner {
-        require(transferableTime == 0);
-
-        transferableTime = block.timestamp;
-    }
-
-    /**
-     * @dev 거래소 상장 시간 확인 함수
-     *
-     * @notice 거래소 상장 시간은 최초 한번만 등록 가능
-     * @return uint256 타입의 상장 시간(초)
-     */
-    function getTransferableTime() external view returns (uint256) {
-        return transferableTime;
     }
 
     /**
@@ -78,7 +47,7 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
      * @return bool 타입의 토큰 대리 전송 권한 성공 여부
      */
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-        require(isTransferable(_from) || owners[msg.sender]);
+        require(isTransferable || owners[msg.sender]);
         return super.transferFrom(_from, _to, _value);
     }
 
@@ -91,23 +60,7 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
      * @return bool 타입의 전송 결과
      */
     function transfer(address _to, uint256 _value) public returns (bool) {
-        require(isTransferable(msg.sender) || owners[msg.sender]);
-        return super.transfer(_to, _value);
-    }
-
-    /**
-     * @dev PXL sale 참여자의 락업 기간 설정 함수
-     *
-     * @notice 지갑 주소 하나 당 하나의 sale만 참여 가능
-     * @notice 참여자의 토큰은 전송하며 락업 기간 설정
-     * @param _to sale 참여자 주소
-     * @param _value 토큰 구매 수량
-     * @return bool 타입의 토큰 구매 결과
-     */
-    function transferAndLockup(address _to, uint256 _value, uint256 _days) public onlyOwner returns (bool) {
-        require(lockup[_to] == 0);
-
-        setLockup(_to, _days);
+        require(isTransferable || owners[msg.sender]);
         return super.transfer(_to, _value);
     }
 
@@ -122,6 +75,7 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
      * @return bool 타입의 처리 결과
      */
     function approveAndCall(address _to, uint256 _value, bytes _data) public returns (bool) {
+        require(isTransferable || owners[msg.sender]);
         require(_to != address(0) && _to != address(this));
         require(balanceOf(msg.sender) >= _value);
 
@@ -167,27 +121,6 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
         return (length > 0);
     }
 
-    /**
-     * @dev 개인 주소 잠금 기간 확인 함수
-     * @param _account 개인 지갑 주소
-     * @return uint256 계정 잠금 시간(초)
-     */
-    function getLockup(address _account) public view returns (uint256) {
-        return lockup[_account];
-    }
-
-    /**
-     * @dev 개인 주소 잠금 기간 설정 함수
-     * @param _address 개인 지갑 주소
-     * @param _days 잠금 시간(일)
-     */
-    function setLockup(address _address, uint256 _days) public onlyOwner {
-        lockup[_address] = _days * 1 days;
-
-        emit Lockup(_address, _days);
-    }
-
     event Mint(address indexed _to, uint256 _amount);
     event Burn(address indexed _from, uint256 _amount);
-    event Lockup(address indexed _account, uint256 _days);
 }
