@@ -33,6 +33,19 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
         isTransferable = true;
     }
 
+    /**
+     * @dev PXL 글로벌 락 상태 조회
+     *
+     * @return bool 잠금 여부
+     */
+    function getTokenTransferable() external view returns (bool) {
+        return isTransferable;
+    }
+
+    /**
+     * @dev fallback 이더리움이 전송될 경우 Revert
+     *
+     */
     function() public payable {
         revert();
     }
@@ -42,7 +55,7 @@ contract PXL is StandardToken, CustomToken, ExtendsOwnable {
      *
      * @notice 토큰 전송이 불가능 할 경우 전송 실패
      * @param _from 토큰을 가지고 있는 지갑 주소
-     * @param _to 대리 전송 권한을 부여할 지갑 주소
+     * @param _to 토큰을 전송받을 지갑 주소
      * @param _value 대리 전송할 토큰 수량
      * @return bool 타입의 토큰 대리 전송 권한 성공 여부
      */
