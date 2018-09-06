@@ -122,7 +122,7 @@ contract Sale is Stateable {
         address productAddress = address(product);
 
         require(getState() == State.Starting);
-        require(whiteList.whitelist(buyer));
+        require(whiteList.isWhitelisted(buyer));
         require(buyer != address(0));
         require(weiRaised[productAddress] < product.maxcap());
         require(buyers[productAddress][buyer] < product.exceed());
@@ -205,8 +205,8 @@ contract Sale is Stateable {
         validAddress(_to)
     {
         require(_id > 0);
-        require(whiteList.whitelist(_from));
-        require(whiteList.whitelist(_to));
+        require(whiteList.isWhitelisted(_from));
+        require(whiteList.isWhitelisted(_to));
         require(buyers[_product][_from] > 0);
         require(buyers[_product][_to] == 0);
 
