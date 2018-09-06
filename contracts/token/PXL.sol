@@ -1,7 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol";
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 
 import "contracts/token/CustomToken.sol";
 import "contracts/token/ContractReceiver.sol";
@@ -13,7 +12,7 @@ import "contracts/utils/ExtendsOwnable.sol";
  * @author Charls Kim - <cs.kim@battleent.com>
  * @dev see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-20.md
  */
-contract PXL is StandardToken, CustomToken, ExtendsOwnable {
+contract PXL is ERC20, CustomToken, ExtendsOwnable {
     using SafeMath for uint256;
 
     // PXL 토큰 기본 정보
