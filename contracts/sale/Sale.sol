@@ -1,3 +1,7 @@
+/**
+* this contract is deprecated.
+*/
+
 pragma solidity ^0.4.24;
 
 import "openzeppelin-solidity/contracts/math/Math.sol";
@@ -118,7 +122,7 @@ contract Sale is Stateable {
         address productAddress = address(product);
 
         require(getState() == State.Starting);
-        require(whiteList.whitelist(buyer));
+        require(whiteList.isWhitelisted(buyer));
         require(buyer != address(0));
         require(weiRaised[productAddress] < product.maxcap());
         require(buyers[productAddress][buyer] < product.exceed());
@@ -153,7 +157,7 @@ contract Sale is Stateable {
     {
         uint256 d1 = product.maxcap().sub(weiRaised[_product]);
         uint256 d2 = product.exceed().sub(_raisedAmount);
-        uint256 possibleAmount = (d1.min256(d2)).min256(_amount);
+        uint256 possibleAmount = (d1.min(d2)).min(_amount);
 
         return (possibleAmount, _amount.sub(possibleAmount));
     }
@@ -201,8 +205,8 @@ contract Sale is Stateable {
         validAddress(_to)
     {
         require(_id > 0);
-        require(whiteList.whitelist(_from));
-        require(whiteList.whitelist(_to));
+        require(whiteList.isWhitelisted(_from));
+        require(whiteList.isWhitelisted(_to));
         require(buyers[_product][_from] > 0);
         require(buyers[_product][_to] == 0);
 
