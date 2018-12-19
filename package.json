@@ -24,7 +24,7 @@
   "license": "MIT",
   "homepage": "https://github.com/piction-protocol/piction-ico#readme",
   "dependencies": {
-    "openzeppelin-solidity": "git+https://github.com/OpenZeppelin/openzeppelin-solidity.git"
+    "openzeppelin-solidity": "^2.0.0"
   },
   "devDependencies": {
     "prompt-radio": "^1.2.1",
