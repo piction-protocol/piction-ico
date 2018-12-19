@@ -20,27 +20,6 @@ contract PXL is ERC20, CustomToken, ExtendsOwnable {
     string public constant symbol = "PXL";
     uint256 public constant decimals = 18;
 
-    // PXL 토큰 글로벌 락 변수
-    bool isTransferable = false;
-
-    /**
-     * @dev PXL 글로벌 락 해제
-     *
-     * @notice 거래소 상장 후 락 해제
-     */
-    function unlock() external onlyOwner {
-        isTransferable = true;
-    }
-
-    /**
-     * @dev PXL 글로벌 락 상태 조회
-     *
-     * @return bool 잠금 여부
-     */
-    function getTokenTransferable() external view returns (bool) {
-        return isTransferable;
-    }
-
     /**
      * @dev fallback 이더리움이 전송될 경우 Revert
      *
@@ -52,27 +31,23 @@ contract PXL is ERC20, CustomToken, ExtendsOwnable {
     /**
      * @dev 토큰 대리 전송을 위한 함수
      *
-     * @notice 토큰 전송이 불가능 할 경우 전송 실패
      * @param _from 토큰을 가지고 있는 지갑 주소
      * @param _to 토큰을 전송받을 지갑 주소
      * @param _value 대리 전송할 토큰 수량
      * @return bool 타입의 토큰 대리 전송 권한 성공 여부
      */
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
-        require(isTransferable || owners[msg.sender]);
         return super.transferFrom(_from, _to, _value);
     }
 
     /**
      * @dev PXL 토큰 전송 함수
      *
-     * @notice 토큰 전송이 불가능 할 경우 전송 실패
      * @param _to 토큰을 받을 지갑 주소
      * @param _value 전송할 토큰 수량
      * @return bool 타입의 전송 결과
      */
     function transfer(address _to, uint256 _value) public returns (bool) {
-        require(isTransferable || owners[msg.sender]);
         return super.transfer(_to, _value);
     }
 
@@ -87,7 +62,6 @@ contract PXL is ERC20, CustomToken, ExtendsOwnable {
      * @return bool 타입의 처리 결과
      */
     function approveAndCall(address _to, uint256 _value, bytes _data) public returns (bool) {
-        require(isTransferable || owners[msg.sender]);
         require(_to != address(0) && _to != address(this));
         require(balanceOf(msg.sender) >= _value);
 
