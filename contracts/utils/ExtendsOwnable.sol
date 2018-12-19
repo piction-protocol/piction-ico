@@ -17,6 +17,10 @@ contract ExtendsOwnable {
         owners[msg.sender] = true;
     }
 
+    function isOwner(address owner) public view returns(bool) {
+        return owners[owner];
+    }
+
     function addOwner(address guest) public onlyOwner {
         require(guest != address(0));
         owners[guest] = true;
