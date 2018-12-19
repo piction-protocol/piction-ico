@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 contract ExtendsOwnable {
 
-    mapping(address => bool) owners;
+    mapping(address => bool) public owners;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
     event OwnershipExtended(address indexed host, address indexed guest);
