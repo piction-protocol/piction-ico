@@ -5,6 +5,7 @@ contract ExtendsOwnable {
     mapping(address => bool) public owners;
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    event OwnershipRevoked(address indexed revokedOwner);
     event OwnershipExtended(address indexed host, address indexed guest);
 
     modifier onlyOwner() {
@@ -20,6 +21,13 @@ contract ExtendsOwnable {
         require(guest != address(0));
         owners[guest] = true;
         emit OwnershipExtended(msg.sender, guest);
+    }
+
+    function removeOwner(address owner) public onlyOwner {
+        require(owner != address(0));
+        require(msg.sender != owner);
+        owners[owner] = false;
+        emit OwnershipRevoked(owner);
     }
 
     function transferOwnership(address newOwner) public onlyOwner {
