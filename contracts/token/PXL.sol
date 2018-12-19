@@ -104,7 +104,7 @@ contract PXL is ERC20, CustomToken, ExtendsOwnable {
      * @dev 토큰 발행 함수
      * @param _amount 발행할 토큰 수량
      */
-     function mint(uint256 _amount) onlyOwner external {
+    function mint(uint256 _amount) onlyOwner external {
         super._mint(msg.sender, _amount);
 
         emit Mint(msg.sender, _amount);
